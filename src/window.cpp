@@ -79,8 +79,7 @@ bool Window::DrawSprite(const std::vector<std::uint8_t>& Sprite, std::size_t x, 
     for (std::uint8_t Byte : Sprite)
     {
         std::bitset<Columns> Mask = Byte;
-        Mask <<= (Mask.size() - 8);
-        Mask = ror(Mask, x);
+        Mask = ror(Mask, x + 8 - Mask.size());
 
         if (!ErasedPixel && ((*Line ^ Mask) != (*Line | Mask)))
             ErasedPixel = true;
