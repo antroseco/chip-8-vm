@@ -418,4 +418,5 @@ void CPU::drw()
         Sprite.push_back(Memory[VI + i]);
 
     VF = Display.DrawSprite(Sprite, IP->x(), IP->y());
+    Display.Refresh();
 }
