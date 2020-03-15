@@ -1,6 +1,12 @@
 #include "../include/window.hpp"
 
+#include <iterator>
 #include <system_error>
+
+auto ror(std::bitset<Window::Columns> x, std::size_t Count)
+{
+    return (x >> Count) | (x << (-Count & (x.size() * 8 - 1)));
+}
 
 /*
                 The screen (stdscr)
@@ -37,9 +43,8 @@ ScreenGuard::~ScreenGuard()
     endwin();
 }
 
-Window::Window(int Lines, int Columns) : Handle(newwin(Lines + 2, Columns + 2, 0, 0))
+Window::Window(int x0, int y0) : Handle(newwin(Lines + 2, Columns + 2, y0, x0))
 {
-    //whline(Handle, ACS_CKBOARD, Columns);
     wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
@@ -62,4 +67,47 @@ void Window::WriteString(int y, int x, const std::string& String) const
 
     if (err != 0)
         throw std::system_error(err, std::system_category(), "mvwaddstr");
+}
+
+bool Window::DrawSprite(const std::vector<std::uint8_t>& Sprite, std::size_t x, std::size_t y)
+{
+    bool ErasedPixel = false;
+
+    auto Line = Data.begin();
+    std::advance(Line, y);
+
+    for (std::uint8_t Byte : Sprite)
+    {
+        std::bitset<Columns> Mask = Byte;
+        Mask <<= (Mask.size() - 8);
+        Mask = ror(Mask, x);
+
+        if (!ErasedPixel && ((*Line ^ Mask) != (*Line | Mask)))
+            ErasedPixel = true;
+
+        *Line ^= Mask;
+
+        DrawLine(std::distance(Data.begin(), Line));
+        std::advance(Line, 1);
+    }
+
+    return ErasedPixel;
+}
+
+void Window::DrawLine(std::size_t Line) const
+{
+    const auto& Bits = Data[Line];
+
+    int err = wmove(Handle, Line + 1, 1);
+
+    if (err != 0)
+        throw std::system_error(err, std::system_category(), "wmove");
+
+    for (std::size_t i = Bits.size() - 1; i != 0; --i)
+    {
+        err = waddch(Handle, Bits.test(i) ? ACS_CKBOARD : ' ');
+
+        if (err != 0)
+            throw std::system_error(err, std::system_category(), "waddch");
+    }
 }
