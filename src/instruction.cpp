@@ -1,4 +1,4 @@
-#include "../include/instruction.hpp"
+#include "instruction.hpp"
 
 #include <stdexcept>
 

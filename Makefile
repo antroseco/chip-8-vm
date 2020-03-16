@@ -1,6 +1,9 @@
 TARGET_EXEC := chip8_vm
 TEST_EXEC := run_tests
 
+INC_DIRS := include lib
+INC_FLAGS := $(addprefix -I, $(INC_DIRS))
+
 CXX := g++
 CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic -g
 LDFLAGS := -Wall -Wextra -lncurses
@@ -15,9 +18,6 @@ OBJS := $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 TEST_OBJS := $(TEST_SRCS:%.cpp=$(BUILD_DIR)/%.o)
 TEST_OBJS += $(filter-out $(BUILD_DIR)/$(SRC_DIR)/main.o, $(OBJS))
 DEPS := $(OBJS:.o=.d)
-
-INC_DIRS := $(shell find $(SRC_DIR) -type d)
-INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 # Target executable
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
@@ -37,7 +37,7 @@ test: $(TEST_OBJS)
 .PHONY: clean
 
 clean:
-	$(RM) -r $(BUILD_DIR)
+	@$(RM) -r $(BUILD_DIR)
 
 -include $(DEPS)
 
