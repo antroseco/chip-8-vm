@@ -21,6 +21,7 @@ uint_fast16_t Instruction::opcode() const
     case 0x9: // 9xy0
         if (n() != 0)
             throw std::invalid_argument(std::to_string(raw));
+    // Fallthrough
     case 0x0: // 0nnn
     case 0x1: // 1nnn
     case 0x2: // 2nnn
