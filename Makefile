@@ -1,8 +1,8 @@
 TARGET_EXEC := chip8_vm
 
 CXX := g++
-CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall
-LDFLAGS := -Wall -lncurses
+CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic -g
+LDFLAGS := -Wall -Wextra -lncurses
 
 BUILD_DIR := ./build
 SRC_DIRS := ./src
