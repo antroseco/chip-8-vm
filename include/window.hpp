@@ -32,6 +32,8 @@ public:
 
     // The screen is updated only when Refresh is called
     void Refresh() const;
+    // Clear the window
+    void Clear();
     void WriteString(int y, int x, const std::string& String) const;
     // Draws a sprite, with each byte on a separate line
     bool DrawSprite(const std::vector<std::uint8_t>& Sprite, std::size_t x, std::size_t y);

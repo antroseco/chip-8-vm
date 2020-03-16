@@ -110,3 +110,19 @@ void Window::DrawLine(std::size_t Line) const
             throw std::system_error(err, std::system_category(), "waddch");
     }
 }
+
+void Window::Clear()
+{
+    for (auto& i : Data)
+        i.reset();
+
+    int err = wclear(Handle);
+
+    if (err != 0)
+        throw std::system_error(err, std::system_category(), "wclear");
+
+    err = wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    if (err != 0)
+        throw std::system_error(err, std::system_category(), "wborder");
+}
