@@ -32,5 +32,5 @@ struct Instruction
     uint_fast8_t y() const noexcept;
     uint_fast8_t n() const noexcept;
     uint_fast8_t kk() const noexcept;
-    uint_fast8_t nnn() const noexcept;
+    uint_fast16_t nnn() const noexcept;
 };

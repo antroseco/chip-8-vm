@@ -81,7 +81,7 @@ uint_fast8_t Instruction::kk() const noexcept
     return (raw & 0x00FF);
 }
 
-uint_fast8_t Instruction::nnn() const noexcept
+uint_fast16_t Instruction::nnn() const noexcept
 {
     return (raw & 0x0FFF);
 }
