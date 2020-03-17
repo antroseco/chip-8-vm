@@ -440,10 +440,10 @@ void CPU::drw()
     * screen.
     */
 
-    std::vector<uint8_t> Sprite;
+    auto address = std::next(Memory.cbegin(), VI);
 
-    for (int i = 0; i < IP.n(); ++i)
-        Sprite.push_back(Memory[VI + i]);
+    std::vector<uint8_t> Sprite;
+    std::copy_n(address, IP.n(), std::back_inserter(Sprite));
 
     if (Display != nullptr)
     {
