@@ -39,7 +39,7 @@ uint_fast16_t Instruction::opcode() const
             throw std::invalid_argument(std::to_string(raw));
         return value | n();
     case 0xE: // Ex9E or ExA1
-        if (kk() != 0x9E || kk() != 0xA1)
+        if (kk() != 0x9E && kk() != 0xA1)
             throw std::invalid_argument(std::to_string(raw));
         return value | kk();
     case 0xF: // Fx??
