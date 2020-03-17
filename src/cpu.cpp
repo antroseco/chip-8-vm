@@ -96,6 +96,8 @@ void CPU::Decode()
         return drw();
     case 0xF01E:
         return add_i();
+    case 0xF029:
+        return ld_digit();
     case 0xF033:
         return str_bcd();
     case 0xF055:
@@ -528,4 +530,17 @@ void CPU::str_bcd()
     Memory.at(VI + 0) = value / 100;
     Memory.at(VI + 1) = (value / 10) % 10;
     Memory.at(VI + 2) = value % 10;
+}
+
+void CPU::ld_digit()
+{
+    /*
+    * Fx29 - LD F, Vx
+    * Set I = location of sprite for digit Vx.
+    *
+    * The value of I is set to the location for the hexadecimal sprite
+    * corresponding to the value of Vx.
+    */
+
+    VI = IP.x() * 5;
 }
