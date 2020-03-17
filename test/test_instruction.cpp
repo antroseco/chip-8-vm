@@ -3,43 +3,44 @@
 
 TEST_CASE("Instruction struct exposes the raw opcode", "[instruction]")
 {
-    Instruction instruction = 0x1234;
+    const int i = GENERATE(take(100, random(0x0000, 0xffff)));
+    const Instruction instruction = i;
 
-    REQUIRE(instruction.raw == 0x1234);
+    REQUIRE(instruction.raw == i);
 
-    SECTION("Opcode exposed is two bytes long")
+    SECTION("Opcode is two bytes long")
     {
-        REQUIRE(sizeof(instruction.raw) == 2);
+        STATIC_REQUIRE(sizeof(instruction.raw) == 2);
     }
 }
 
 TEST_CASE("Instruction struct can decode instructions", "[instruction]")
 {
-    Instruction instruction = 0x1234;
+    const Instruction instruction = GENERATE(take(100, random(0x0000, 0xffff)));
 
     SECTION("Decode x")
     {
-        REQUIRE(instruction.x() == 0x2);
+        REQUIRE(instruction.x() == ((instruction.raw & 0x0F00) >> 8));
     }
 
     SECTION("Decode y")
     {
-        REQUIRE(instruction.y() == 0x3);
+        REQUIRE(instruction.y() == ((instruction.raw & 0x00F0) >> 4));
     }
 
     SECTION("Decode n")
     {
-        REQUIRE(instruction.n() == 0x4);
+        REQUIRE(instruction.n() == (instruction.raw & 0x000F));
     }
 
     SECTION("Decode kk")
     {
-        REQUIRE(instruction.kk() == 0x34);
+        REQUIRE(instruction.kk() == (instruction.raw & 0x00FF));
     }
 
     SECTION("Decode nnn")
     {
-        REQUIRE(instruction.nnn() == 0x234);
+        REQUIRE(instruction.nnn() == (instruction.raw & 0x0FFF));
     }
 }
 
