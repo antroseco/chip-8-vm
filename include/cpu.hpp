@@ -83,9 +83,14 @@ class CPU
     void sub_y() noexcept;
     void subn_y() noexcept;
 
+    void add_i() noexcept;
+
     void rnd();
     void drw();
+    void cls();
 
 public:
     CPU(Window& Display, std::vector<Instruction>&& Program);
+    void Step();
+    void Run();
 };

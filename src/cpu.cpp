@@ -1,4 +1,4 @@
-#include "../include/cpu.hpp"
+#include "cpu.hpp"
 
 #include <string>
 
@@ -26,12 +26,30 @@ CPU::CPU(Window& Display, std::vector<Instruction>&& ROM) : ROM(ROM), Display(Di
     std::copy(Font.cbegin(), Font.cend(), Memory.begin());
 }
 
+void CPU::Step()
+{
+    Decode();
+
+    if (UpdatePC)
+        IncrementPC(1);
+    else
+        UpdatePC = true;
+}
+
+void CPU::Run()
+{
+    for (int i = 0; i < 100000; ++i)
+        Step();
+}
+
 void CPU::Decode()
 {
     const auto opcode = IP->opcode();
 
     switch (opcode)
     {
+    case 0x00E0:
+        return cls();
     case 0x00EE:
         return ret();
     case 0x1000:
@@ -76,8 +94,10 @@ void CPU::Decode()
         return rnd();
     case 0xD000:
         return drw();
+    case 0xF01E:
+        return add_i();
     default:
-        throw std::logic_error("Opcode" + std::to_string(opcode) + "not implemented");
+        throw std::logic_error("Opcode " + std::to_string(opcode) + " not implemented");
         break;
     }
 }
@@ -89,11 +109,11 @@ void CPU::IncrementPC(const uint16_t Amount)
 
 void CPU::SetPC(const uint16_t Address)
 {
+    if (Address >= ROM.size())
+        throw std::out_of_range(std::to_string(Address));
+
     PC = Address;
     IP = std::next(ROM.cbegin(), PC);
-
-    if (IP >= ROM.cend())
-        throw std::out_of_range(std::to_string(PC));
 }
 
 void CPU::jp()
@@ -419,4 +439,27 @@ void CPU::drw()
 
     VF = Display.DrawSprite(Sprite, IP->x(), IP->y());
     Display.Refresh();
+}
+
+void CPU::cls()
+{
+    /*
+    * 00E0 - CLS
+    * Clear the display.
+    */
+
+    Display.Clear();
+    Display.Refresh();
+}
+
+void CPU::add_i() noexcept
+{
+    /*
+    * Fx1E - ADD I, Vx
+    * Set I = I + Vx.
+    *
+    * The values of I and Vx are added, and the results are stored in I.
+    */
+
+    VI += V[IP->x()];
 }
