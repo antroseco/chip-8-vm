@@ -96,6 +96,10 @@ void CPU::Decode()
         return drw();
     case 0xF01E:
         return add_i();
+    case 0xF055:
+        return str_vx();
+    case 0xF065:
+        return ld_vx();
     default:
         throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
         break;
@@ -468,4 +472,40 @@ void CPU::add_i() noexcept
     */
 
     VI += V[IP.x()];
+}
+
+void CPU::str_vx()
+{
+    /*
+    * Fx55 - LD [I], Vx
+    * Store registers V0 through Vx in memory starting at location I.
+    *
+    * The interpreter copies the values of registers V0 through Vx into
+    * memory, starting at the address in I.
+    */
+
+    if (VI + IP.x() >= Memory.size())
+        throw std::out_of_range(std::to_string(VI + IP.x()));
+
+    auto address = std::next(Memory.begin(), VI);
+
+    std::copy_n(V.cbegin(), IP.x() + 1, address);
+}
+
+void CPU::ld_vx()
+{
+    /*
+    * Fx65 - LD Vx, [I]
+    * Read registers V0 through Vx from memory starting at location I.
+    *
+    * The interpreter reads values from memory starting at location I into
+    * registers V0 through Vx.
+    */
+
+    if (VI + IP.x() >= Memory.size())
+        throw std::out_of_range(std::to_string(VI + IP.x()));
+
+    auto address = std::next(Memory.cbegin(), VI);
+
+    std::copy_n(address, IP.x() + 1, V.begin());
 }

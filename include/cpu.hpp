@@ -88,6 +88,9 @@ class CPU
     void drw();
     void cls();
 
+    void str_vx();
+    void ld_vx();
+
 public:
     CPU(const std::vector<uint8_t>& ROM, Window* Display);
     void Step();
