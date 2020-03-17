@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 
+#include <algorithm>
 #include <string>
 
 constexpr std::array<uint8_t, 80> Font = {
@@ -21,9 +22,10 @@ constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(Window* Display, std::vector<Instruction>&& ROM) : ROM(ROM), Display(Display)
+CPU::CPU(const std::vector<uint8_t>& ROM, Window* Display) : IP(ROM.data()), Display(Display)
 {
     std::copy(Font.cbegin(), Font.cend(), Memory.begin());
+    std::copy_n(ROM.cbegin(), std::min(0xDFFul, ROM.size()), std::next(Memory.begin(), 0x200));
 }
 
 void CPU::Step()
@@ -31,7 +33,7 @@ void CPU::Step()
     Decode();
 
     if (UpdatePC)
-        IncrementPC(1);
+        AdvancePC(1);
     else
         UpdatePC = true;
 }
@@ -44,9 +46,7 @@ void CPU::Run()
 
 void CPU::Decode()
 {
-    const auto opcode = IP->opcode();
-
-    switch (opcode)
+    switch (IP.opcode())
     {
     case 0x00E0:
         return cls();
@@ -97,23 +97,23 @@ void CPU::Decode()
     case 0xF01E:
         return add_i();
     default:
-        throw std::logic_error("Opcode " + std::to_string(opcode) + " not implemented");
+        throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
         break;
     }
 }
 
-void CPU::IncrementPC(const uint16_t Amount)
+void CPU::AdvancePC(const uint_fast16_t Instructions)
 {
-    SetPC(PC + Amount);
+    SetPC(PC + Instructions * 2);
 }
 
 void CPU::SetPC(const uint16_t Address)
 {
-    if (Address >= ROM.size())
+    if (Address >= Memory.size())
         throw std::out_of_range(std::to_string(Address));
 
     PC = Address;
-    IP = std::next(ROM.cbegin(), PC);
+    IP.read(std::next(Memory.data(), PC));
 }
 
 void CPU::jp()
@@ -125,7 +125,7 @@ void CPU::jp()
     * The interpreter sets the program counter to nnn.
     */
 
-    SetPC(IP->nnn());
+    SetPC(IP.nnn());
     UpdatePC = false;
 }
 
@@ -173,9 +173,9 @@ void CPU::se_x_kk()
     * increments the program counter by 2.
     */
 
-    if (V[IP->x()] == IP->kk())
+    if (V[IP.x()] == IP.kk())
     {
-        IncrementPC(2);
+        AdvancePC(2);
         UpdatePC = false;
     }
 }
@@ -190,9 +190,9 @@ void CPU::sne_x_kk()
     * increments the program counter by 2.
     */
 
-    if (V[IP->x()] != IP->kk())
+    if (V[IP.x()] != IP.kk())
     {
-        IncrementPC(2);
+        AdvancePC(2);
         UpdatePC = false;
     }
 }
@@ -207,9 +207,9 @@ void CPU::se_x_y()
     * equal, increments the program counter by 2.
     */
 
-    if (V[IP->x()] == V[IP->y()])
+    if (V[IP.x()] == V[IP.y()])
     {
-        IncrementPC(2);
+        AdvancePC(2);
         UpdatePC = false;
     }
 }
@@ -223,7 +223,7 @@ void CPU::ld_kk() noexcept
     * The interpreter puts the value kk into register Vx.
     */
 
-    V[IP->x()] = IP->kk();
+    V[IP.x()] = IP.kk();
 }
 
 void CPU::add_kk() noexcept
@@ -235,7 +235,7 @@ void CPU::add_kk() noexcept
     * Adds the value kk to the value of register Vx, then stores the result in Vx.
     */
 
-    V[IP->x()] += IP->kk();
+    V[IP.x()] += IP.kk();
 }
 
 void CPU::ld_y() noexcept
@@ -247,7 +247,7 @@ void CPU::ld_y() noexcept
     * Stores the value of register Vy in register Vx.
     */
 
-    V[IP->x()] = V[IP->y()];
+    V[IP.x()] = V[IP.y()];
 }
 
 void CPU::or_y() noexcept
@@ -260,7 +260,7 @@ void CPU::or_y() noexcept
     * result in Vx.
     */
 
-    V[IP->x()] |= V[IP->y()];
+    V[IP.x()] |= V[IP.y()];
 }
 
 void CPU::and_y() noexcept
@@ -273,7 +273,7 @@ void CPU::and_y() noexcept
     * result in Vx.
     */
 
-    V[IP->x()] &= V[IP->y()];
+    V[IP.x()] &= V[IP.y()];
 }
 
 void CPU::xor_y() noexcept
@@ -286,7 +286,7 @@ void CPU::xor_y() noexcept
     * stores the result in Vx.
     */
 
-    V[IP->x()] ^= V[IP->y()];
+    V[IP.x()] ^= V[IP.y()];
 }
 
 void CPU::add_y() noexcept
@@ -300,8 +300,8 @@ void CPU::add_y() noexcept
     * lowest 8 bits of the result are kept, and stored in Vx.
     */
 
-    const uint_fast16_t Result = V[IP->x()] + V[IP->y()];
-    V[IP->x()] = Result & 0xFF;
+    const uint_fast16_t Result = V[IP.x()] + V[IP.y()];
+    V[IP.x()] = Result & 0xFF;
     VF = Result > 0xFF ? 1 : 0;
 }
 
@@ -315,8 +315,8 @@ void CPU::sub_y() noexcept
     * from Vx, and the results stored in Vx.
     */
 
-    V[IP->x()] -= V[IP->y()];
-    VF = V[IP->x()] > V[IP->y()] ? 1 : 0;
+    V[IP.x()] -= V[IP.y()];
+    VF = V[IP.x()] > V[IP.y()] ? 1 : 0;
 }
 
 void CPU::shr() noexcept
@@ -329,8 +329,8 @@ void CPU::shr() noexcept
     * otherwise 0. Then Vx is divided by 2.
     */
 
-    VF = V[IP->x()] & 0x01;
-    V[IP->x()] >>= 2;
+    VF = V[IP.x()] & 0x01;
+    V[IP.x()] >>= 2;
 }
 
 void CPU::shl() noexcept
@@ -343,8 +343,8 @@ void CPU::shl() noexcept
     * otherwise to 0. Then Vx is multiplied by 2.
     */
 
-    VF = (V[IP->x()] & 0x80) >> 7;
-    V[IP->x()] <<= 2;
+    VF = (V[IP.x()] & 0x80) >> 7;
+    V[IP.x()] <<= 2;
 }
 
 void CPU::subn_y() noexcept
@@ -357,8 +357,8 @@ void CPU::subn_y() noexcept
     * from Vy, and the results stored in Vx.
     */
 
-    VF = V[IP->y()] > V[IP->x()] ? 1 : 0;
-    V[IP->x()] = V[IP->y()] - V[IP->x()];
+    VF = V[IP.y()] > V[IP.x()] ? 1 : 0;
+    V[IP.x()] = V[IP.y()] - V[IP.x()];
 }
 
 void CPU::sne_x_y()
@@ -371,9 +371,9 @@ void CPU::sne_x_y()
     * program counter is increased by 2.
     */
 
-    if (V[IP->x()] != V[IP->y()])
+    if (V[IP.x()] != V[IP.y()])
     {
-        IncrementPC(2);
+        AdvancePC(2);
         UpdatePC = false;
     }
 }
@@ -387,7 +387,7 @@ void CPU::ld_addr() noexcept
     * The value of register I is set to nnn.
     */
 
-    VI = IP->nnn();
+    VI = IP.nnn();
 }
 
 void CPU::jp_v0()
@@ -399,7 +399,7 @@ void CPU::jp_v0()
     * The program counter is set to nnn plus the value of V0.
     */
 
-    IncrementPC(V[0]);
+    AdvancePC(V[0]);
 }
 
 void CPU::rnd()
@@ -413,7 +413,7 @@ void CPU::rnd()
     * 8xy2 for more information on AND.
     */
 
-    V[IP->x()] = Distribution(Generator) & IP->kk();
+    V[IP.x()] = Distribution(Generator) & IP.kk();
 }
 
 void CPU::drw()
@@ -434,12 +434,12 @@ void CPU::drw()
 
     std::vector<uint8_t> Sprite;
 
-    for (int i = 0; i < IP->n(); ++i)
+    for (int i = 0; i < IP.n(); ++i)
         Sprite.push_back(Memory[VI + i]);
 
     if (Display != nullptr)
     {
-        VF = Display->DrawSprite(Sprite, IP->x(), IP->y());
+        VF = Display->DrawSprite(Sprite, IP.x(), IP.y());
         Display->Refresh();
     }
 }
@@ -467,5 +467,5 @@ void CPU::add_i() noexcept
     * The values of I and Vx are added, and the results are stored in I.
     */
 
-    VI += V[IP->x()];
+    VI += V[IP.x()];
 }

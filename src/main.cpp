@@ -10,16 +10,21 @@ int main(int argc, char* argv[])
     if (argc != 2)
     {
         std::cout << argv[0] << " [file]\n";
-        return 1;
+        return EXIT_FAILURE;
     }
 
     ScreenGuard Screen;
     Window Display(0, 0);
 
-    auto File = LoadFile(argv[1]);
-    auto ROM = ParseROM(File);
+    auto ROM = LoadFile(argv[1]);
 
-    CPU Processor(&Display, std::move(ROM));
+    if (!CheckROM(ROM))
+    {
+        std::cout << "Invalid ROM\n";
+        return EXIT_FAILURE;
+    }
+
+    CPU Processor(ROM, &Display);
 
     Processor.Run();
 

@@ -38,13 +38,12 @@ class CPU
 {
     std::array<uint8_t, 0x1000> Memory = {0}; // 4096 bytes of RAM
     std::stack<uint16_t> Stack;               // Stack, up to 16 16-bit addresses
-    std::vector<Instruction> ROM;             // Program data
 
-    std::array<uint8_t, 16> V = {0};                            // 16 8-bit data registers (V0, V1, ..., VF)
-    uint8_t& VF = V.back();                                     // Flag register (equivalent to V[0xF])
-    uint16_t VI = 0;                                            // 16-bit address register
-    uint16_t PC = 0;                                            // Program Counter
-    std::vector<Instruction>::const_iterator IP = ROM.cbegin(); // Instruction Pointer
+    std::array<uint8_t, 16> V = {0}; // 16 8-bit data registers (V0, V1, ..., VF)
+    uint8_t& VF = V.back();          // Flag register (equivalent to V[0xF])
+    uint16_t VI = 0;                 // 16-bit address register
+    uint16_t PC = 0x200;             // Program Counter
+    Instruction IP;                  // Instruction Pointer
 
     Window* const Display;
 
@@ -54,7 +53,7 @@ class CPU
     bool UpdatePC = true;
 
     void Decode();
-    void IncrementPC(const uint16_t Amount);
+    void AdvancePC(const uint_fast16_t Instructions);
     void SetPC(const uint16_t Address);
 
     // Instruction set
@@ -90,7 +89,7 @@ class CPU
     void cls();
 
 public:
-    CPU(Window* Display, std::vector<Instruction>&& Program);
+    CPU(const std::vector<uint8_t>& ROM, Window* Display);
     void Step();
     void Run();
 };

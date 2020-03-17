@@ -28,18 +28,7 @@ std::vector<uint8_t> LoadFile(const std::string& Path)
     return buffer;
 }
 
-std::vector<Instruction> ParseROM(const std::vector<uint8_t>& Data)
+bool CheckROM(const std::vector<uint8_t>& ROM) noexcept
 {
-    auto DataPointer = Data.data();
-
-    std::vector<Instruction> Buffer;
-    Buffer.reserve(Data.size() / 2);
-
-    for (std::size_t i = 0; i < Data.size(); i += 2)
-    {
-        auto Short = reinterpret_cast<const uint16_t*>(std::next(DataPointer, i));
-        Buffer.emplace_back(htons(*Short));
-    }
-
-    return Buffer;
+    return ROM.size() < 0xDFF;
 }
