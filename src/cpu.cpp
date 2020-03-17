@@ -96,6 +96,8 @@ void CPU::Decode()
         return drw();
     case 0xF01E:
         return add_i();
+    case 0xF033:
+        return str_bcd();
     case 0xF055:
         return str_vx();
     case 0xF065:
@@ -508,4 +510,22 @@ void CPU::ld_vx()
     auto address = std::next(Memory.cbegin(), VI);
 
     std::copy_n(address, IP.x() + 1, V.begin());
+}
+
+void CPU::str_bcd()
+{
+    /*
+    * Fx33 - LD B, Vx
+    * Store BCD representation of Vx in memory locations I, I+1, and I+2.
+    *
+    * The interpreter takes the decimal value of Vx, and places the hundreds
+    * digit in memory at location in I, the tens digit at location I+1, and
+    * the ones digit at location I+2.
+    */
+
+    const uint8_t value = V[IP.x()];
+
+    Memory.at(VI + 0) = value / 100;
+    Memory.at(VI + 1) = (value / 10) % 10;
+    Memory.at(VI + 2) = value % 10;
 }

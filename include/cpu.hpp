@@ -90,6 +90,7 @@ class CPU
 
     void str_vx();
     void ld_vx();
+    void str_bcd();
 
 public:
     CPU(const std::vector<uint8_t>& ROM, Window* Display);
