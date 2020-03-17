@@ -1,6 +1,25 @@
 #include "catch.hpp"
 #include "instruction.hpp"
 
+TEST_CASE("Instruction struct can read memory addresses correctly", "[instruction]")
+{
+    Instruction instruction = 1;
+
+    REQUIRE(instruction.raw == 1);
+
+    const uint8_t buffer[2] = {0x12, 0x34};
+    instruction.read(&buffer);
+
+    REQUIRE(instruction.raw == 0x1234);
+
+    SECTION("Can be initialized with a memory address")
+    {
+        Instruction instruction2(&buffer);
+
+        REQUIRE(instruction2.raw == 0x1234);
+    }
+}
+
 TEST_CASE("Instruction struct exposes the raw opcode", "[instruction]")
 {
     const int i = GENERATE(take(100, random(0x0000, 0xffff)));

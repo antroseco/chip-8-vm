@@ -23,9 +23,12 @@ struct Instruction
     */
 
     Instruction() = delete;
-    Instruction(const uint16_t);
+    Instruction(uint16_t instruction);
+    Instruction(const void* address);
 
-    const uint16_t raw;
+    void read(const void* address);
+
+    uint16_t raw;
 
     uint_fast16_t opcode() const;
     uint_fast8_t x() const noexcept;

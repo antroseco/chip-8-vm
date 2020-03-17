@@ -1,8 +1,20 @@
 #include "instruction.hpp"
 
+#include <arpa/inet.h>
 #include <stdexcept>
 
-Instruction::Instruction(const uint16_t Instruction) : raw(Instruction) {}
+Instruction::Instruction(uint16_t instruction) : raw(instruction) {}
+
+Instruction::Instruction(const void* address)
+{
+    read(address);
+}
+
+void Instruction::read(const void* address)
+{
+    auto* const pointer = reinterpret_cast<const uint16_t*>(address);
+    raw = htons(*pointer);
+}
 
 uint_fast16_t Instruction::opcode() const
 {
