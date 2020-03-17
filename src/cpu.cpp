@@ -21,7 +21,7 @@ constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(Window& Display, std::vector<Instruction>&& ROM) : ROM(ROM), Display(Display)
+CPU::CPU(Window* Display, std::vector<Instruction>&& ROM) : ROM(ROM), Display(Display)
 {
     std::copy(Font.cbegin(), Font.cend(), Memory.begin());
 }
@@ -437,8 +437,11 @@ void CPU::drw()
     for (int i = 0; i < IP->n(); ++i)
         Sprite.push_back(Memory[VI + i]);
 
-    VF = Display.DrawSprite(Sprite, IP->x(), IP->y());
-    Display.Refresh();
+    if (Display != nullptr)
+    {
+        VF = Display->DrawSprite(Sprite, IP->x(), IP->y());
+        Display->Refresh();
+    }
 }
 
 void CPU::cls()
@@ -448,8 +451,11 @@ void CPU::cls()
     * Clear the display.
     */
 
-    Display.Clear();
-    Display.Refresh();
+    if (Display != nullptr)
+    {
+        Display->Clear();
+        Display->Refresh();
+    }
 }
 
 void CPU::add_i() noexcept

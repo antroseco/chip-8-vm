@@ -46,7 +46,7 @@ class CPU
     uint16_t PC = 0;                                            // Program Counter
     std::vector<Instruction>::const_iterator IP = ROM.cbegin(); // Instruction Pointer
 
-    Window& Display;
+    Window* const Display;
 
     std::random_device Generator;                        // Random number generator
     std::uniform_int_distribution<uint8_t> Distribution; //Random number distribution
@@ -90,7 +90,7 @@ class CPU
     void cls();
 
 public:
-    CPU(Window& Display, std::vector<Instruction>&& Program);
+    CPU(Window* Display, std::vector<Instruction>&& Program);
     void Step();
     void Run();
 };

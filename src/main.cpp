@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     auto File = LoadFile(argv[1]);
     auto ROM = ParseROM(File);
 
-    CPU Processor(Display, std::move(ROM));
+    CPU Processor(&Display, std::move(ROM));
 
     Processor.Run();
 
