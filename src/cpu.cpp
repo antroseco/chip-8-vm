@@ -366,7 +366,7 @@ void CPU::shr() noexcept
     */
 
     VF = V[IP.x()] & 0x01;
-    V[IP.x()] >>= 2;
+    V[IP.x()] >>= 1;
 }
 
 void CPU::shl() noexcept
@@ -380,7 +380,7 @@ void CPU::shl() noexcept
     */
 
     VF = (V[IP.x()] & 0x80) >> 7;
-    V[IP.x()] <<= 2;
+    V[IP.x()] <<= 1;
 }
 
 void CPU::subn_y() noexcept
