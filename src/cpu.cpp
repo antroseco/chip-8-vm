@@ -358,29 +358,29 @@ void CPU::sub_y() noexcept
 void CPU::shr() noexcept
 {
     /*
-    * 8xy6 - SHR Vx {, Vy}
-    * Set Vx = Vx SHR 1.
+    * 8xy6 - SHR Vx, Vy
+    * Set Vx = Vy SHR 1.
     *
-    * If the least-significant bit of Vx is 1, then VF is set to 1,
-    * otherwise 0. Then Vx is divided by 2.
+    * Store the value of register VY shifted right one bit in register VX.
+    * Set register VF to the least significant bit prior to the shift.
     */
 
-    VF = V[IP.x()] & 0x01;
-    V[IP.x()] >>= 1;
+    VF = V[IP.y()] & 0x01;
+    V[IP.x()] = V[IP.y()] >> 1;
 }
 
 void CPU::shl() noexcept
 {
     /*
-    * 8xyE - SHL Vx {, Vy}
-    * Set Vx = Vx SHL 1.
+    * 8xyE - SHL Vx, Vy
+    * Set Vx = Vy SHL 1.
     *
-    * If the most-significant bit of Vx is 1, then VF is set to 1,
-    * otherwise to 0. Then Vx is multiplied by 2.
+    * Store the value of register VY shifted left one bit in register VX.
+    * Set register VF to the most significant bit prior to the shift.
     */
 
     VF = (V[IP.x()] & 0x80) >> 7;
-    V[IP.x()] <<= 1;
+    V[IP.x()] = V[IP.y()] << 1;
 }
 
 void CPU::subn_y() noexcept
