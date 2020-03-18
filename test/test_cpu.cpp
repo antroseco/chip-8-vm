@@ -24,6 +24,13 @@ inline std::uint16_t operator"" _u(unsigned long long value)
     return static_cast<std::uint16_t>(value);
 }
 
+template <typename T>
+auto range_i(T start, T end)
+{
+    // Returns the range from start to end _inclusive_
+    return Catch::Generators::range(start, end + 1);
+}
+
 TEST_CASE("jp (1nnn)", "[cpu]")
 {
     const uint16_t i = GENERATE(take(100, random(0x000, 0xfff)));
@@ -139,7 +146,7 @@ TEST_CASE("ret (00EE)", "[cpu]")
 
 TEST_CASE("se_x_kk (3xkk)", "[cpu]")
 {
-    auto vx = GENERATE(range(0x0, 0xf + 1));
+    auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
     std::vector<uint16_t> instructions;
@@ -168,8 +175,8 @@ TEST_CASE("se_x_kk (3xkk)", "[cpu]")
 
 TEST_CASE("se_x_y (5xy0)", "[cpu]")
 {
-    auto vx = GENERATE(range(0x0, 0xf + 1));
-    auto vy = GENERATE(range(0x0, 0xf + 1));
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
     std::vector<uint16_t> instructions;
@@ -206,7 +213,7 @@ TEST_CASE("se_x_y (5xy0)", "[cpu]")
 
 TEST_CASE("sne_x_kk (4xkk)", "[cpu]")
 {
-    auto vx = GENERATE(range(0x0, 0xf + 1));
+    auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
     std::vector<uint16_t> instructions;
@@ -234,8 +241,8 @@ TEST_CASE("sne_x_kk (4xkk)", "[cpu]")
 
 TEST_CASE("sne_x_y (9xy0)", "[cpu]")
 {
-    auto vx = GENERATE(range(0x0, 0xf + 1));
-    auto vy = GENERATE(range(0x0, 0xf + 1));
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
     std::vector<uint16_t> instructions;
@@ -271,7 +278,7 @@ TEST_CASE("sne_x_y (9xy0)", "[cpu]")
 
 TEST_CASE("ld_kk (6xkk)", "[cpu]")
 {
-    auto vx = GENERATE(range(0x0, 0xf + 1));
+    auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
     std::vector<uint16_t> instructions;
@@ -285,8 +292,8 @@ TEST_CASE("ld_kk (6xkk)", "[cpu]")
 
 TEST_CASE("ld_y (8xy0)", "[cpu]")
 {
-    auto vx = GENERATE(range(0x0, 0xf + 1));
-    auto vy = GENERATE(range(0x0, 0xf + 1));
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
     std::vector<uint16_t> instructions;
