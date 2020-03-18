@@ -268,3 +268,17 @@ TEST_CASE("sne_x_y (9xy0)", "[cpu]")
     else
         REQUIRE(cpu.read_pc() == 0x20A);
 }
+
+TEST_CASE("ld_kk (6xkk)", "[cpu]")
+{
+    auto vx = GENERATE(range(0x0, 0xf + 1));
+    auto kk = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions;
+    instructions.push_back(0x6000 | (vx << 8) | kk); // ld_kk (loads kk into register vx)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vx] == kk);
+}
