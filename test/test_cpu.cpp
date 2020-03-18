@@ -165,3 +165,41 @@ TEST_CASE("se_x_kk (3xkk)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_pc() == 0x20A);
 }
+
+TEST_CASE("se_x_y (5xy0)", "[cpu]")
+{
+    auto vx = GENERATE(range(0x0, 0xf));
+    auto vy = GENERATE(range(0x0, 0xf));
+    auto kk = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions;
+    instructions.push_back(0x6000 | (vx << 8) | kk);        // ld_kk (loads kk to register vx)
+    instructions.push_back(0x6000 | (vy << 8) | kk);        // ld_kk (loads kk to register vy)
+    instructions.push_back(0x5000 | (vx << 8) | (vy << 4)); // se_x_y (skip next instruction)
+    instructions.push_back(0);                              // noop (should be skipped)
+    instructions.push_back(0x6000 | (vy << 8) | (kk ^ 1));  // ld_kk (loads something other than kk)
+    instructions.push_back(0x5000 | (vx << 8) | (vy << 4)); // se_x_y (should not skip next instruction)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_pc() == 0x202);
+    REQUIRE(cpu.read_registers()[vx] == kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_pc() == 0x204);
+    REQUIRE(cpu.read_registers()[vy] == kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_pc() == 0x208);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_pc() == 0x20A);
+    REQUIRE(cpu.read_registers()[vy] != kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    if (vx != vy)
+        REQUIRE(cpu.read_pc() == 0x20C);
+    else
+        REQUIRE(cpu.read_pc() == 0x20E);
+}
