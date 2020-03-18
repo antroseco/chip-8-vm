@@ -301,3 +301,16 @@ TEST_CASE("ld_y (8xy0)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_registers()[vx] == kk);
 }
+
+TEST_CASE("ld_addr (Annn)", "[cpu]")
+{
+    auto address = GENERATE(take(100, random(0x000, 0xfff)));
+
+    std::vector<uint16_t> instructions;
+    instructions.push_back(0xA000 | address); // ld_addr (loads address into VI)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_vi() == address);
+}
