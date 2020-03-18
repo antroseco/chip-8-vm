@@ -190,6 +190,9 @@ void CPU::ret()
     * of the stack, then subtracts 1 from the stack pointer.
     */
 
+    if (Stack.empty())
+        throw std::runtime_error("Stack underflow");
+
     SetPC(Stack.top());
     UpdatePC = false;
 

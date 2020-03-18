@@ -69,9 +69,7 @@ TEST_CASE("call (2nnn)", "[cpu]")
     // Overflow the stack
     instructions.push_back(0x2000);
 
-    auto rom = make_rom(instructions);
-
-    CPU cpu(rom, nullptr);
+    CPU cpu(make_rom(instructions), nullptr);
 
     REQUIRE(cpu.read_pc() == 0x200);
 
@@ -84,6 +82,38 @@ TEST_CASE("call (2nnn)", "[cpu]")
 
     SECTION("Stack can only contain 16 values", "[cpu]")
     {
+        REQUIRE_THROWS_AS(cpu.Step(), std::runtime_error);
+    }
+}
+
+TEST_CASE("ret (00EE)", "[cpu]")
+{
+    SECTION("Normal operation")
+    {
+        std::vector<uint16_t> instructions;
+        instructions.push_back(0x2202); // call (jump to next instruction)
+        instructions.push_back(0x00EE); // ret (jump back to 0x200)
+
+        CPU cpu(make_rom(instructions), nullptr);
+
+        REQUIRE(cpu.read_pc() == 0x200);
+        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE(cpu.read_pc() == 0x202);
+        REQUIRE(cpu.read_stack().top() == 0x200);
+
+        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE(cpu.read_pc() == 0x200);
+        REQUIRE(cpu.read_stack().empty());
+    }
+
+    SECTION("Called with an empty stack")
+    {
+        std::vector<uint16_t> instructions;
+        instructions.push_back(0x00EE); // ret (empty stack; should throw)
+
+        CPU cpu(make_rom(instructions), nullptr);
+
+        REQUIRE(cpu.read_stack().empty());
         REQUIRE_THROWS_AS(cpu.Step(), std::runtime_error);
     }
 }
