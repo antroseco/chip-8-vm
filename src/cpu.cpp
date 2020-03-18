@@ -523,6 +523,9 @@ void CPU::str_vx()
     auto address = std::next(Memory.begin(), VI);
 
     std::copy_n(V.cbegin(), IP.x() + 1, address);
+
+    // Undocumented
+    VI += IP.x() + 1;
 }
 
 void CPU::ld_vx()
@@ -541,6 +544,9 @@ void CPU::ld_vx()
     auto address = std::next(Memory.cbegin(), VI);
 
     std::copy_n(address, IP.x() + 1, V.begin());
+
+    // Undocumented
+    VI += IP.x() + 1;
 }
 
 void CPU::str_bcd()
