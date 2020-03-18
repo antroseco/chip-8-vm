@@ -38,3 +38,24 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
     REQUIRE(cpu.read_pc() == i);
 }
+
+TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
+{
+    // Ensure i + j < 0xfff
+    const uint16_t i = GENERATE(take(10, random(0x000, 0xf00)));
+    const uint16_t j = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions;
+    instructions.push_back(0x6000 | j); // ld_kk (load j to V0)
+    instructions.push_back(0xB000 | i); // jp_v0 (jump to i + V0)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE(cpu.read_pc() == 0x200);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[0] == j);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_pc() == i + j);
+}

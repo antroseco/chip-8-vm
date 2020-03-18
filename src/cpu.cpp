@@ -432,7 +432,8 @@ void CPU::jp_v0()
     * The program counter is set to nnn plus the value of V0.
     */
 
-    AdvancePC(V[0]);
+    SetPC(IP.nnn() + V[0]);
+    UpdatePC = false;
 }
 
 void CPU::rnd()
