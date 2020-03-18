@@ -282,3 +282,22 @@ TEST_CASE("ld_kk (6xkk)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_registers()[vx] == kk);
 }
+
+TEST_CASE("ld_y (8xy0)", "[cpu]")
+{
+    auto vx = GENERATE(range(0x0, 0xf + 1));
+    auto vy = GENERATE(range(0x0, 0xf + 1));
+    auto kk = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions;
+    instructions.push_back(0x6000 | (vy << 8) | kk);        // ld_kk (loads kk into register vy)
+    instructions.push_back(0x8000 | (vx << 8) | (vy << 4)); // ld_y (loads vy into vx)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vy] == kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vx] == kk);
+}
