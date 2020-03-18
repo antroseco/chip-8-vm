@@ -321,3 +321,22 @@ TEST_CASE("ld_addr (Annn)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_vi() == address);
 }
+
+TEST_CASE("add_kk (7xkk)", "[cpu]")
+{
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
+    auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions;
+    instructions.push_back(0x6000 | (vx << 8) | kk1); // ld_kk (loads kk1 into register vx)
+    instructions.push_back(0x7000 | (vx << 8) | kk2); // add_kk (adds kk2 to vx)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vx] == kk1);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vx] == ((kk1 + kk2) & 0xFF));
+}
