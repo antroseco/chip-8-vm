@@ -55,18 +55,12 @@ Window::~Window()
 
 void Window::Refresh() const
 {
-    int err = wrefresh(Handle);
-
-    if (err != 0)
-        throw std::system_error(err, std::system_category(), "wrefresh");
+    wrefresh(Handle);
 }
 
 void Window::WriteString(int y, int x, const std::string& String) const
 {
-    int err = mvwaddstr(Handle, y + 1, x + 1, String.c_str());
-
-    if (err != 0)
-        throw std::system_error(err, std::system_category(), "mvwaddstr");
+    mvwaddstr(Handle, y + 1, x + 1, String.c_str());
 }
 
 bool Window::DrawSprite(const std::vector<std::uint8_t>& Sprite, std::size_t x, std::size_t y)
@@ -97,17 +91,11 @@ void Window::DrawLine(std::size_t Line) const
 {
     const auto& Bits = Data[Line];
 
-    int err = wmove(Handle, Line + 1, 1);
-
-    if (err != 0)
-        throw std::system_error(err, std::system_category(), "wmove");
+    wmove(Handle, Line + 1, 1);
 
     for (std::size_t i = Bits.size() - 1; i != 0; --i)
     {
-        err = waddch(Handle, Bits.test(i) ? ACS_CKBOARD : ' ');
-
-        if (err != 0)
-            throw std::system_error(err, std::system_category(), "waddch");
+        waddch(Handle, Bits.test(i) ? ACS_CKBOARD : ' ');
     }
 }
 
@@ -116,13 +104,6 @@ void Window::Clear()
     for (auto& i : Data)
         i.reset();
 
-    int err = wclear(Handle);
-
-    if (err != 0)
-        throw std::system_error(err, std::system_category(), "wclear");
-
-    err = wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
-
-    if (err != 0)
-        throw std::system_error(err, std::system_category(), "wborder");
+    wclear(Handle);
+    wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
 }
