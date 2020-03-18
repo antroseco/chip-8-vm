@@ -59,3 +59,31 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_pc() == i + j);
 }
+
+TEST_CASE("call (2nnn)", "[cpu]")
+{
+    std::vector<uint16_t> instructions;
+    for (std::uint16_t i = 0; i < 16; ++i)
+        instructions.push_back(0x2200 | (i * 2 + 2)); // call (push PC to stack and jump to 0x200 + i)
+
+    // Overflow the stack
+    instructions.push_back(0x2000);
+
+    auto rom = make_rom(instructions);
+
+    CPU cpu(rom, nullptr);
+
+    REQUIRE(cpu.read_pc() == 0x200);
+
+    for (int i = 0; i < 16; ++i)
+    {
+        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE(cpu.read_pc() == (0x200 | (i * 2 + 2)));
+        REQUIRE(cpu.read_stack().top() == (0x200 | (i * 2)));
+    }
+
+    SECTION("Stack can only contain 16 values", "[cpu]")
+    {
+        REQUIRE_THROWS_AS(cpu.Step(), std::runtime_error);
+    }
+}
