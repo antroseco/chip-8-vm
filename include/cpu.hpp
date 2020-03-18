@@ -97,4 +97,10 @@ public:
     CPU(const std::vector<uint8_t>& ROM, Window* Display);
     void Step();
     void Run();
+
+    const std::array<uint8_t, 0x1000>& read_memory() const noexcept;
+    const std::stack<uint16_t>& read_stack() const noexcept;
+    const std::array<uint8_t, 16>& read_registers() const noexcept;
+    uint16_t read_vi() const noexcept;
+    uint16_t read_pc() const noexcept;
 };

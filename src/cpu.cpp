@@ -44,6 +44,31 @@ void CPU::Run()
         Step();
 }
 
+const std::array<uint8_t, 0x1000>& CPU::read_memory() const noexcept
+{
+    return Memory;
+}
+
+const std::stack<uint16_t>& CPU::read_stack() const noexcept
+{
+    return Stack;
+}
+
+const std::array<uint8_t, 16>& CPU::read_registers() const noexcept
+{
+    return V;
+}
+
+uint16_t CPU::read_vi() const noexcept
+{
+    return VI;
+}
+
+uint16_t CPU::read_pc() const noexcept
+{
+    return PC;
+}
+
 void CPU::Decode()
 {
     switch (IP.opcode())
