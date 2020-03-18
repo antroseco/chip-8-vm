@@ -94,6 +94,7 @@ class CPU
     void ld_digit();
 
 public:
+    CPU() = delete;
     CPU(const std::vector<uint8_t>& ROM, Window* Display);
     void Step();
     void Run();
