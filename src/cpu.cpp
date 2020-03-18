@@ -476,7 +476,7 @@ void CPU::drw()
 
     if (Display != nullptr)
     {
-        VF = Display->DrawSprite(Sprite, IP.x(), IP.y());
+        VF = Display->DrawSprite(Sprite, V[IP.x()], V[IP.y()]);
         Display->Refresh();
     }
 }
