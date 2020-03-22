@@ -36,6 +36,7 @@ ScreenGuard::ScreenGuard()
     curs_set(0);              // Disables the cursor
     intrflush(stdscr, false); // Disables buffer flusing on keyboard interrupts
     keypad(stdscr, true);     // Interpret function keys
+    setlocale(LC_ALL, "");    // Set locale
 }
 
 ScreenGuard::~ScreenGuard()
@@ -43,7 +44,7 @@ ScreenGuard::~ScreenGuard()
     endwin();
 }
 
-Window::Window(int x0, int y0) : Handle(newwin(Lines + 2, Columns + 2, y0, x0))
+Window::Window(int x0, int y0) : Handle(newwin(Lines + 2, Columns * 2 + 2, y0, x0))
 {
     wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
 }
@@ -95,6 +96,7 @@ void Window::DrawLine(std::size_t Line) const
 
     for (std::size_t i = Bits.size() - 1; i != (std::size_t)-1; --i)
     {
+        waddch(Handle, Bits.test(i) ? ACS_CKBOARD : ' ');
         waddch(Handle, Bits.test(i) ? ACS_CKBOARD : ' ');
     }
 }
