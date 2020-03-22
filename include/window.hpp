@@ -19,7 +19,7 @@ public:
     static constexpr std::size_t Columns = 64;
 
 private:
-    WINDOW* Handle;
+    WINDOW* const Handle;
     std::array<std::bitset<Columns>, Lines> Data;
 
     void DrawLine(std::size_t Line) const;
