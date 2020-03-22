@@ -19,11 +19,6 @@ std::vector<uint8_t> make_rom(const std::vector<uint16_t>& instructions)
     return rom;
 }
 
-inline std::uint16_t operator"" _u(unsigned long long value)
-{
-    return static_cast<std::uint16_t>(value);
-}
-
 template <typename T>
 auto range_i(T start, T end)
 {
@@ -36,8 +31,9 @@ TEST_CASE("jp (1nnn)", "[cpu]")
     SECTION("Normal operation")
     {
         const uint16_t i = GENERATE(take(100, random(0x000, 0xffe)));
-        std::vector<uint16_t> instructions;
-        instructions.push_back(0x1000 | i); // jp (jump to i)
+        std::vector<uint16_t> instructions{
+            (uint16_t)(0x1000 | i) // jp (jump to i)
+        };
 
         CPU cpu(make_rom(instructions), nullptr);
 
@@ -50,8 +46,9 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
     SECTION("Address is the last byte (can't contain a 16 bit instruction)")
     {
-        std::vector<uint16_t> instructions;
-        instructions.push_back(0x1fff); // jp (jump to 0xfff)
+        std::vector<uint16_t> instructions{
+            0x1fff // jp (jump to 0xfff
+        };
 
         CPU cpu(make_rom(instructions), nullptr);
 
@@ -67,9 +64,10 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
         const uint16_t i = GENERATE(take(10, random(0x000, 0xf00)));
         const uint16_t j = GENERATE(take(10, random(0x00, 0xff)));
 
-        std::vector<uint16_t> instructions;
-        instructions.push_back(0x6000 | j); // ld_kk (load j to V0)
-        instructions.push_back(0xB000 | i); // jp_v0 (jump to i + V0)
+        std::vector<uint16_t> instructions{
+            (uint16_t)(0x6000 | j), // ld_kk (load j to V0)
+            (uint16_t)(0xB000 | i)  // jp_v0 (jump to i + V0)
+        };
 
         CPU cpu(make_rom(instructions), nullptr);
 
@@ -88,9 +86,10 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
         const uint16_t i = GENERATE(take(10, random(0xff0, 0xfff)));
         const uint16_t j = GENERATE(take(10, random(0x0f, 0xff)));
 
-        std::vector<uint16_t> instructions;
-        instructions.push_back(0x6000 | j); // ld_kk (load j to V0)
-        instructions.push_back(0xB000 | i); // jp_v0 (jump to i + V0)
+        std::vector<uint16_t> instructions{
+            (uint16_t)(0x6000 | j), // ld_kk (load j to V0)
+            (uint16_t)(0xB000 | i)  // jp_v0 (jump to i + V0)
+        };
 
         CPU cpu(make_rom(instructions), nullptr);
 
@@ -129,9 +128,10 @@ TEST_CASE("ret (00EE)", "[cpu]")
 {
     SECTION("Normal operation")
     {
-        std::vector<uint16_t> instructions;
-        instructions.push_back(0x2202); // call (jump to next instruction)
-        instructions.push_back(0x00EE); // ret (jump back to 0x200)
+        std::vector<uint16_t> instructions{
+            (uint16_t)(0x2202), // call (jump to next instruction)
+            (uint16_t)(0x00EE)  // ret (jump back to 0x200)
+        };
 
         CPU cpu(make_rom(instructions), nullptr);
 
@@ -147,8 +147,9 @@ TEST_CASE("ret (00EE)", "[cpu]")
 
     SECTION("Called with an empty stack")
     {
-        std::vector<uint16_t> instructions;
-        instructions.push_back(0x00EE); // ret (empty stack; should throw)
+        std::vector<uint16_t> instructions{
+            0x00EE // ret (empty stack; should throw)
+        };
 
         CPU cpu(make_rom(instructions), nullptr);
 
@@ -162,12 +163,13 @@ TEST_CASE("se_x_kk (3xkk)", "[cpu]")
     auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vx << 8) | kk);       // ld_kk (loads kk to register vx)
-    instructions.push_back(0x3000 | (vx << 8) | kk);       // se_x_kk (skip next instruction)
-    instructions.push_back(0);                             // noop (should be skipped)
-    instructions.push_back(0x6000 | (vx << 8) | (kk ^ 1)); // ld_kk (loads something other than kk)
-    instructions.push_back(0x3000 | (vx << 8) | kk);       // se_x_kk (should not skip next instruction)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk),       // ld_kk (loads kk to register vx)
+        (uint16_t)(0x3000 | (vx << 8) | kk),       // se_x_kk (skip next instruction)
+        0,                                         // noop (should be skipped)
+        (uint16_t)(0x6000 | (vx << 8) | (kk ^ 1)), // ld_kk (loads something other than kk)
+        (uint16_t)(0x3000 | (vx << 8) | kk)        // se_x_kk (should not skip next instruction)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -192,13 +194,14 @@ TEST_CASE("se_x_y (5xy0)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vx << 8) | kk);        // ld_kk (loads kk to register vx)
-    instructions.push_back(0x6000 | (vy << 8) | kk);        // ld_kk (loads kk to register vy)
-    instructions.push_back(0x5000 | (vx << 8) | (vy << 4)); // se_x_y (skip next instruction)
-    instructions.push_back(0);                              // noop (should be skipped)
-    instructions.push_back(0x6000 | (vy << 8) | (kk ^ 1));  // ld_kk (loads something other than kk)
-    instructions.push_back(0x5000 | (vx << 8) | (vy << 4)); // se_x_y (should not skip next instruction)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk),        // ld_kk (loads kk to register vx)
+        (uint16_t)(0x6000 | (vy << 8) | kk),        // ld_kk (loads kk to register vy)
+        (uint16_t)(0x5000 | (vx << 8) | (vy << 4)), // se_x_y (skip next instruction)
+        0,                                          // noop (should be skipped)
+        (uint16_t)(0x6000 | (vy << 8) | (kk ^ 1)),  // ld_kk (loads something other than kk)
+        (uint16_t)(0x5000 | (vx << 8) | (vy << 4))  // se_x_y (should not skip next instruction)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -229,11 +232,12 @@ TEST_CASE("sne_x_kk (4xkk)", "[cpu]")
     auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vx << 8) | kk);       // ld_kk (loads kk to register vx)
-    instructions.push_back(0x4000 | (vx << 8) | kk);       // sne_x_kk (should not skip next instruction)
-    instructions.push_back(0x6000 | (vx << 8) | (kk ^ 1)); // ld_kk (loads something other than kk)
-    instructions.push_back(0x4000 | (vx << 8) | kk);       // sne_x_kk (skip next instruction)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk),       // ld_kk (loads kk to register vx)
+        (uint16_t)(0x4000 | (vx << 8) | kk),       // sne_x_kk (should not skip next instruction)
+        (uint16_t)(0x6000 | (vx << 8) | (kk ^ 1)), // ld_kk (loads something other than kk)
+        (uint16_t)(0x4000 | (vx << 8) | kk)        // sne_x_kk (skip next instruction)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -258,12 +262,13 @@ TEST_CASE("sne_x_y (9xy0)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vx << 8) | kk);        // ld_kk (loads kk to register vx)
-    instructions.push_back(0x6000 | (vy << 8) | kk);        // ld_kk (loads kk to register vy)
-    instructions.push_back(0x9000 | (vx << 8) | (vy << 4)); // sne_x_y (should not skip next instruction)
-    instructions.push_back(0x6000 | (vy << 8) | (kk ^ 1));  // ld_kk (loads something other than kk)
-    instructions.push_back(0x9000 | (vx << 8) | (vy << 4)); // sne_x_y (skip next instruction)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk),        // ld_kk (loads kk to register vx)
+        (uint16_t)(0x6000 | (vy << 8) | kk),        // ld_kk (loads kk to register vy)
+        (uint16_t)(0x9000 | (vx << 8) | (vy << 4)), // sne_x_y (should not skip next instruction)
+        (uint16_t)(0x6000 | (vy << 8) | (kk ^ 1)),  // ld_kk (loads something other than kk)
+        (uint16_t)(0x9000 | (vx << 8) | (vy << 4))  // sne_x_y (skip next instruction)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -294,8 +299,9 @@ TEST_CASE("ld_kk (6xkk)", "[cpu]")
     auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vx << 8) | kk); // ld_kk (loads kk into register vx)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk) // ld_kk (loads kk into register vx)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -309,9 +315,10 @@ TEST_CASE("ld_y (8xy0)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vy << 8) | kk);        // ld_kk (loads kk into register vy)
-    instructions.push_back(0x8000 | (vx << 8) | (vy << 4)); // ld_y (loads vy into vx)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vy << 8) | kk),       // ld_kk (loads kk into register vy)
+        (uint16_t)(0x8000 | (vx << 8) | (vy << 4)) // ld_y (loads vy into vx)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -326,8 +333,9 @@ TEST_CASE("ld_addr (Annn)", "[cpu]")
 {
     auto address = GENERATE(take(100, random(0x000, 0xfff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0xA000 | address); // ld_addr (loads address into VI)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0xA000 | address) // ld_addr (loads address into VI)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
@@ -341,9 +349,10 @@ TEST_CASE("add_kk (7xkk)", "[cpu]")
     auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
     auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
 
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x6000 | (vx << 8) | kk1); // ld_kk (loads kk1 into register vx)
-    instructions.push_back(0x7000 | (vx << 8) | kk2); // add_kk (adds kk2 to vx)
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk1), // ld_kk (loads kk1 into register vx)
+        (uint16_t)(0x7000 | (vx << 8) | kk2)  // add_kk (adds kk2 to vx)
+    };
 
     CPU cpu(make_rom(instructions), nullptr);
 
