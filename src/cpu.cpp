@@ -28,20 +28,22 @@ CPU::CPU(const std::vector<uint8_t>& ROM, Window* Display) : IP(ROM.data()), Dis
     std::copy_n(ROM.cbegin(), std::min(0xDFFul, ROM.size()), std::next(Memory.begin(), 0x200));
 }
 
-void CPU::Step()
+bool CPU::Step()
 {
-    Decode();
+    const bool not_finished = Execute();
 
     if (UpdatePC)
         AdvancePC(1);
     else
         UpdatePC = true;
+
+    return not_finished;
 }
 
 void CPU::Run()
 {
-    for (int i = 0; i < 100000; ++i)
-        Step();
+    while (Step())
+        ;
 }
 
 const std::array<uint8_t, 0x1000>& CPU::read_memory() const noexcept
@@ -69,70 +71,95 @@ uint16_t CPU::read_pc() const noexcept
     return PC;
 }
 
-void CPU::Decode()
+bool CPU::Execute()
 {
     switch (IP.opcode())
     {
     case 0x00E0:
-        return cls();
+        cls();
+        return true;
     case 0x00EE:
-        return ret();
+        ret();
+        return true;
     case 0x1000:
         return jp();
     case 0x2000:
-        return call();
+        call();
+        return true;
     case 0x3000:
-        return se_x_kk();
+        se_x_kk();
+        return true;
     case 0x4000:
-        return sne_x_kk();
+        sne_x_kk();
+        return true;
     case 0x5000:
-        return se_x_y();
+        se_x_y();
+        return true;
     case 0x6000:
-        return ld_kk();
+        ld_kk();
+        return true;
     case 0x7000:
-        return add_kk();
+        add_kk();
+        return true;
     case 0x8000:
-        return ld_y();
+        ld_y();
+        return true;
     case 0x8001:
-        return or_y();
+        or_y();
+        return true;
     case 0x8002:
-        return and_y();
+        and_y();
+        return true;
     case 0x8003:
-        return xor_y();
+        xor_y();
+        return true;
     case 0x8004:
-        return add_y();
+        add_y();
+        return true;
     case 0x8005:
-        return sub_y();
+        sub_y();
+        return true;
     case 0x8006:
-        return shr();
+        shr();
+        return true;
     case 0x8007:
-        return subn_y();
+        subn_y();
+        return true;
     case 0x800e:
-        return shl();
+        shl();
+        return true;
     case 0x9000:
-        return sne_x_y();
+        sne_x_y();
+        return true;
     case 0xA000:
-        return ld_addr();
+        ld_addr();
+        return true;
     case 0xB000:
         return jp_v0();
     case 0xC000:
-        return rnd();
+        rnd();
+        return true;
     case 0xD000:
-        return drw();
+        drw();
+        return true;
     case 0xF01E:
-        return add_i();
+        add_i();
+        return true;
     case 0xF029:
-        return ld_digit();
+        ld_digit();
+        return true;
     case 0xF033:
-        return str_bcd();
+        str_bcd();
+        return true;
     case 0xF055:
-        return str_vx();
+        str_vx();
+        return true;
     case 0xF065:
-        return ld_vx();
-    default:
-        throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
-        break;
+        ld_vx();
+        return true;
     }
+
+    throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
 }
 
 void CPU::AdvancePC(const uint_fast16_t Instructions)
@@ -149,7 +176,7 @@ void CPU::SetPC(const uint16_t Address)
     IP.read(std::next(Memory.data(), PC));
 }
 
-void CPU::jp()
+bool CPU::jp()
 {
     /*
     * 1nnn - JP addr
@@ -158,8 +185,14 @@ void CPU::jp()
     * The interpreter sets the program counter to nnn.
     */
 
+    // Check if we are stuck in a loop
+    if (PC == IP.nnn())
+        return false;
+
     SetPC(IP.nnn());
     UpdatePC = false;
+
+    return true;
 }
 
 void CPU::call()
@@ -426,7 +459,7 @@ void CPU::ld_addr() noexcept
     VI = IP.nnn();
 }
 
-void CPU::jp_v0()
+bool CPU::jp_v0()
 {
     /*
     * Bnnn - JP V0, addr
@@ -435,8 +468,14 @@ void CPU::jp_v0()
     * The program counter is set to nnn plus the value of V0.
     */
 
+    // Check if we are stuck in a loop
+    if (PC == IP.nnn() + V[0])
+        return false;
+
     SetPC(IP.nnn() + V[0]);
     UpdatePC = false;
+
+    return true;
 }
 
 void CPU::rnd()

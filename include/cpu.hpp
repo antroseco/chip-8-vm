@@ -52,13 +52,13 @@ class CPU
 
     bool UpdatePC = true;
 
-    void Decode();
+    bool Execute();
     void AdvancePC(const uint_fast16_t Instructions);
     void SetPC(const uint16_t Address);
 
     // Instruction set
-    void jp();
-    void jp_v0();
+    bool jp();
+    bool jp_v0();
     void call();
     void ret();
 
@@ -96,7 +96,7 @@ class CPU
 public:
     CPU() = delete;
     CPU(const std::vector<uint8_t>& ROM, Window* Display);
-    void Step();
+    bool Step();
     void Run();
 
     const std::array<uint8_t, 0x1000>& read_memory() const noexcept;

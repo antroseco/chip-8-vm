@@ -28,6 +28,9 @@ int main(int argc, char* argv[])
 
     Processor.Run();
 
+    Display.WriteString(31, 0, "Done");
+    Display.Refresh();
+
     sleep(5);
 
     return 0;
