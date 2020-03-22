@@ -93,7 +93,7 @@ void Window::DrawLine(std::size_t Line) const
 
     wmove(Handle, Line + 1, 1);
 
-    for (std::size_t i = Bits.size() - 1; i != 0; --i)
+    for (std::size_t i = Bits.size() - 1; i != (std::size_t)-1; --i)
     {
         waddch(Handle, Bits.test(i) ? ACS_CKBOARD : ' ');
     }
