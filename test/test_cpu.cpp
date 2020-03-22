@@ -141,7 +141,8 @@ TEST_CASE("ret (00EE)", "[cpu]")
         REQUIRE(cpu.read_stack().top() == 0x200);
 
         REQUIRE_NOTHROW(cpu.Step());
-        REQUIRE(cpu.read_pc() == 0x200);
+        // PC should be equal to the value on the stack + 2
+        REQUIRE(cpu.read_pc() == 0x202);
         REQUIRE(cpu.read_stack().empty());
     }
 

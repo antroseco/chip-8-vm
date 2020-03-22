@@ -193,7 +193,7 @@ void CPU::ret()
     if (Stack.empty())
         throw std::runtime_error("Stack underflow");
 
-    SetPC(Stack.top());
+    SetPC(Stack.top() + 2);
     UpdatePC = false;
 
     Stack.pop();
