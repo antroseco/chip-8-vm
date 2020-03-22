@@ -33,17 +33,30 @@ auto range_i(T start, T end)
 
 TEST_CASE("jp (1nnn)", "[cpu]")
 {
-    const uint16_t i = GENERATE(take(100, random(0x000, 0xfff)));
-    std::vector<uint16_t> instructions;
-    instructions.push_back(0x1000 | i);
+    SECTION("Normal operation")
+    {
+        const uint16_t i = GENERATE(take(100, random(0x000, 0xffe)));
+        std::vector<uint16_t> instructions;
+        instructions.push_back(0x1000 | i); // jp (jump to i)
 
-    CPU cpu(make_rom(instructions), nullptr);
+        CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE(cpu.read_pc() == 0x200);
+        REQUIRE(cpu.read_pc() == 0x200);
 
-    cpu.Step();
+        cpu.Step();
 
-    REQUIRE(cpu.read_pc() == i);
+        REQUIRE(cpu.read_pc() == i);
+    }
+
+    SECTION("Address is the last byte (can't contain a 16 bit instruction)")
+    {
+        std::vector<uint16_t> instructions;
+        instructions.push_back(0x1fff); // jp (jump to 0xfff)
+
+        CPU cpu(make_rom(instructions), nullptr);
+
+        REQUIRE_THROWS_AS(cpu.Step(), std::out_of_range);
+    }
 }
 
 TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
@@ -69,7 +82,7 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
         REQUIRE(cpu.read_pc() == i + j);
     }
 
-    SECTION("Invalid address")
+    SECTION("Address out of range")
     {
         // Ensure I + j >= 0xfff
         const uint16_t i = GENERATE(take(10, random(0xff0, 0xfff)));

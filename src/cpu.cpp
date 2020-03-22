@@ -142,7 +142,7 @@ void CPU::AdvancePC(const uint_fast16_t Instructions)
 
 void CPU::SetPC(const uint16_t Address)
 {
-    if (Address >= Memory.size())
+    if (Address >= Memory.size() - 1)
         throw std::out_of_range(std::to_string(Address));
 
     PC = Address;
