@@ -370,8 +370,9 @@ void CPU::add_y() noexcept
     */
 
     const uint_fast16_t Result = V[IP.x()] + V[IP.y()];
-    V[IP.x()] = Result & 0xFF;
+
     VF = Result > 0xFF ? 1 : 0;
+    V[IP.x()] = Result & 0xFF;
 }
 
 void CPU::sub_y() noexcept
