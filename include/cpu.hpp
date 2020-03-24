@@ -48,7 +48,7 @@ class CPU
     Window* const Display;
 
     std::random_device Generator;                        // Random number generator
-    std::uniform_int_distribution<uint8_t> Distribution; //Random number distribution
+    std::uniform_int_distribution<uint8_t> Distribution; // Random number distribution
 
     bool UpdatePC = true;
 
