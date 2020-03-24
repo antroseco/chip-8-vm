@@ -436,8 +436,11 @@ void CPU::subn_y() noexcept
     * from Vy, and the results stored in Vx.
     */
 
-    VF = V[IP.y()] > V[IP.x()] ? 1 : 0;
-    V[IP.x()] = V[IP.y()] - V[IP.x()];
+    // In case one of the operands is VF
+    const uint_fast16_t result = V[IP.y()] - V[IP.x()];
+
+    VF = result > 0xff ? 0 : 1;
+    V[IP.x()] = result;
 }
 
 void CPU::sne_x_y()
