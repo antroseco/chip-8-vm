@@ -363,3 +363,54 @@ TEST_CASE("add_kk (7xkk)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_registers()[vx] == ((kk1 + kk2) & 0xFF));
 }
+
+TEST_CASE("shr (8xy6)", "[cpu]")
+{
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto vy = GENERATE(range_i(0x0, 0xf));
+    auto kk = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vy << 8) | kk),       // ld_kk (loads kk into register vy)
+        (uint16_t)(0x8006 | (vx << 8) | (vy << 4)) // shr (shifts vy and stores the result in vx)
+    };
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vy] == kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    if (vy != vx && vy != 0xf)
+        REQUIRE(cpu.read_registers()[vy] == kk);
+    REQUIRE(cpu.read_registers()[vx] == (kk >> 1));
+    if (vx != 0xf)
+        REQUIRE(cpu.read_registers()[0xf] == (kk & 1));
+}
+
+TEST_CASE("shl (8xyE)", "[cpu]")
+{
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto vy = GENERATE(range_i(0x0, 0xf));
+    auto kk = GENERATE(take(10, random(0x00, 0xff)));
+
+    // Too complicated for Catch to parse
+    auto result = (kk << 1) & 0xff;
+
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vy << 8) | kk),       // ld_kk (loads kk into register vy)
+        (uint16_t)(0x800E | (vx << 8) | (vy << 4)) // shl (shifts vy and stores the result in vx)
+    };
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vy] == kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    if (vy != vx && vy != 0xf)
+        REQUIRE(cpu.read_registers()[vy] == kk);
+    REQUIRE(cpu.read_registers()[vx] == result);
+    if (vx != 0xf)
+        REQUIRE(cpu.read_registers()[0xf] == (kk & 0x80) >> 7);
+}

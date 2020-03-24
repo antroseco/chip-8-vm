@@ -398,8 +398,11 @@ void CPU::shr() noexcept
     * Set register VF to the least significant bit prior to the shift.
     */
 
-    VF = V[IP.y()] & 0x01;
-    V[IP.x()] = V[IP.y()] >> 1;
+    // Make a copy of the data in case it's stored in VF
+    const uint8_t data = V[IP.y()];
+
+    VF = data & 0x01;
+    V[IP.x()] = data >> 1;
 }
 
 void CPU::shl() noexcept
@@ -412,8 +415,11 @@ void CPU::shl() noexcept
     * Set register VF to the most significant bit prior to the shift.
     */
 
-    VF = (V[IP.x()] & 0x80) >> 7;
-    V[IP.x()] = V[IP.y()] << 1;
+    // Make a copy of the data in case it's stored in VF
+    const uint8_t data = V[IP.y()];
+
+    VF = (data & 0x80) >> 7;
+    V[IP.x()] = data << 1;
 }
 
 void CPU::subn_y() noexcept
