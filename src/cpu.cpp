@@ -629,5 +629,5 @@ void CPU::ld_digit()
     * corresponding to the value of Vx.
     */
 
-    VI = IP.x() * 5;
+    VI = V[IP.x()] * 5;
 }
