@@ -414,3 +414,30 @@ TEST_CASE("shl (8xyE)", "[cpu]")
     if (vx != 0xf)
         REQUIRE(cpu.read_registers()[0xf] == (kk & 0x80) >> 7);
 }
+
+TEST_CASE("or_y (8xy1)", "[cpu]")
+{
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto vy = GENERATE(range_i(0x0, 0xf));
+    auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
+    auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk1),      // ld_kk (loads kk1 into register vx)
+        (uint16_t)(0x6000 | (vy << 8) | kk2),      // ld_kk (loads kk2 into register vy)
+        (uint16_t)(0x8001 | (vx << 8) | (vy << 4)) // shr (shifts vy and stores the result in vx)
+    };
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vx] == kk1);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vy] == kk2);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vy] == kk2);
+    if (vx != vy)
+        REQUIRE(cpu.read_registers()[vx] == (kk1 | kk2));
+}
