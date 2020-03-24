@@ -8,7 +8,7 @@ INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 
 # Compiler options
 CXX := g++
-CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic -g
+CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic -g -Og
 LDFLAGS := -Wall -Wextra -lncurses
 
 # Project directories
