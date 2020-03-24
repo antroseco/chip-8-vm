@@ -385,8 +385,11 @@ void CPU::sub_y() noexcept
     * from Vx, and the results stored in Vx.
     */
 
-    V[IP.x()] -= V[IP.y()];
-    VF = V[IP.x()] > V[IP.y()] ? 1 : 0;
+    // In case one of the operands is VF
+    const uint_fast16_t result = V[IP.x()] - V[IP.y()];
+
+    VF = result > 0xff ? 0 : 1;
+    V[IP.x()] = result & 0xff;
 }
 
 void CPU::shr() noexcept
