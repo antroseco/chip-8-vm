@@ -85,13 +85,13 @@ class CPU
     void add_i() noexcept;
 
     void rnd();
-    void drw();
-    void cls();
+    void drw(); // TODO: test
+    void cls(); // TODO: test
 
-    void str_vx();
-    void ld_vx();
-    void str_bcd();
-    void ld_digit();
+    void str_vx();   // TODO: test
+    void ld_vx();    // TODO: test
+    void str_bcd();  // TODO: test
+    void ld_digit(); // TODO: test
 
 public:
     CPU() = delete;
