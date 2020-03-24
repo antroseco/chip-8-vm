@@ -618,3 +618,25 @@ TEST_CASE("add_i (Fx1E)", "[cpu]")
     REQUIRE_NOTHROW(cpu.Step());
     REQUIRE(cpu.read_vi() == (nnn + kk));
 }
+
+TEST_CASE("rnd (Cxkk)", "[cpu]")
+{
+    auto kk = GENERATE(take(100, random(0x00, 0xff)));
+
+    std::vector<uint16_t> instructions;
+    for (int i = 0; i < 16; ++i)
+        instructions.push_back(0xC000 | (i << 8) | kk); // rnd (store (random byte & kk) to register i)
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    for (int i = 0; i < 16; ++i)
+        REQUIRE_NOTHROW(cpu.Step());
+
+    const auto registers = cpu.read_registers();
+
+    REQUIRE(std::all_of(registers.cbegin(), registers.cend(),
+                        [kk](uint8_t x) { return (x & kk) == x; }));
+
+    REQUIRE(std::any_of(registers.cbegin(), registers.cend(),
+                        [&registers](uint8_t x) { return x != registers.front(); }));
+}
