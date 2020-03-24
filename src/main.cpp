@@ -13,9 +13,6 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    ScreenGuard Screen;
-    Window Display(0, 0);
-
     auto ROM = LoadFile(argv[1]);
 
     if (!CheckROM(ROM))
@@ -24,14 +21,25 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    CPU Processor(ROM, &Display);
+    try
+    {
+        ScreenGuard Screen;
+        Window Display(0, 0);
 
-    Processor.Run();
+        CPU Processor(ROM, &Display);
 
-    Display.WriteString(31, 0, "Done");
-    Display.Refresh();
+        Processor.Run();
 
-    sleep(5);
+        Display.WriteString(31, 0, "Done");
+        Display.Refresh();
 
-    return 0;
+        sleep(5);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
