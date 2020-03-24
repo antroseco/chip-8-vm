@@ -425,7 +425,7 @@ TEST_CASE("or_y (8xy1)", "[cpu]")
     std::vector<uint16_t> instructions{
         (uint16_t)(0x6000 | (vx << 8) | kk1),      // ld_kk (loads kk1 into register vx)
         (uint16_t)(0x6000 | (vy << 8) | kk2),      // ld_kk (loads kk2 into register vy)
-        (uint16_t)(0x8001 | (vx << 8) | (vy << 4)) // shr (shifts vy and stores the result in vx)
+        (uint16_t)(0x8001 | (vx << 8) | (vy << 4)) // or_y (vx = vx | vy)
     };
 
     CPU cpu(make_rom(instructions), nullptr);
@@ -452,7 +452,7 @@ TEST_CASE("and_y (8xy2)", "[cpu]")
     std::vector<uint16_t> instructions{
         (uint16_t)(0x6000 | (vx << 8) | kk1),      // ld_kk (loads kk1 into register vx)
         (uint16_t)(0x6000 | (vy << 8) | kk2),      // ld_kk (loads kk2 into register vy)
-        (uint16_t)(0x8002 | (vx << 8) | (vy << 4)) // shr (shifts vy and stores the result in vx)
+        (uint16_t)(0x8002 | (vx << 8) | (vy << 4)) // and_y (vx = vx & vy)
     };
 
     CPU cpu(make_rom(instructions), nullptr);
@@ -479,7 +479,7 @@ TEST_CASE("xor_y (8xy3)", "[cpu]")
     std::vector<uint16_t> instructions{
         (uint16_t)(0x6000 | (vx << 8) | kk1),      // ld_kk (loads kk1 into register vx)
         (uint16_t)(0x6000 | (vy << 8) | kk2),      // ld_kk (loads kk2 into register vy)
-        (uint16_t)(0x8003 | (vx << 8) | (vy << 4)) // shr (shifts vy and stores the result in vx)
+        (uint16_t)(0x8003 | (vx << 8) | (vy << 4)) // xor_y (vx = vx ^ vy)
     };
 
     CPU cpu(make_rom(instructions), nullptr);
@@ -514,7 +514,7 @@ TEST_CASE("add_y (8xy4)", "[cpu]")
     std::vector<uint16_t> instructions{
         (uint16_t)(0x6000 | (vx << 8) | kk1),      // ld_kk (loads kk1 into register vx)
         (uint16_t)(0x6000 | (vy << 8) | kk2),      // ld_kk (loads kk2 into register vy)
-        (uint16_t)(0x8004 | (vx << 8) | (vy << 4)) // shr (shifts vy and stores the result in vx)
+        (uint16_t)(0x8004 | (vx << 8) | (vy << 4)) // add_y (vx = vx + vy)
     };
 
     CPU cpu(make_rom(instructions), nullptr);
