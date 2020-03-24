@@ -594,3 +594,27 @@ TEST_CASE("subn_y (8xy7)", "[cpu]")
     if (vx != 0xf)
         REQUIRE(cpu.read_registers()[0xf] == (difference < 0 ? 0 : 1));
 }
+
+TEST_CASE("add_i (Fx1E)", "[cpu]")
+{
+    auto vx = GENERATE(range_i(0x0, 0xf));
+    auto kk = GENERATE(take(10, random(0x00, 0xff)));
+    auto nnn = GENERATE(take(10, random(0x000, 0xfff)));
+
+    std::vector<uint16_t> instructions{
+        (uint16_t)(0x6000 | (vx << 8) | kk), // ld_kk (loads kk into register vx)
+        (uint16_t)(0xA000 | nnn),            // ld_addr (loads nnn into VI)
+        (uint16_t)(0xF01E | (vx << 8))       // add_i (VI = VI + vx)
+    };
+
+    CPU cpu(make_rom(instructions), nullptr);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_registers()[vx] == kk);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_vi() == nnn);
+
+    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE(cpu.read_vi() == (nnn + kk));
+}
