@@ -8,8 +8,8 @@ INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 
 # Compiler options
 CXX := g++
-CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic -g -Og
-LDFLAGS := -Wall -Wextra -lncurses
+CXXFLAGS := $(INC_FLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic -g -Og -pthread
+LDFLAGS := -Wall -Wextra -lncurses -pthread
 
 # Project directories
 BUILD_DIR := build

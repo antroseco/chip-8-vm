@@ -142,6 +142,12 @@ bool CPU::Execute()
     case 0xD000:
         drw();
         return true;
+    case 0xF007:
+        ld_dt();
+        return true;
+    case 0xF015:
+        set_dt();
+        return true;
     case 0xF01E:
         add_i();
         return true;
@@ -630,4 +636,28 @@ void CPU::ld_digit()
     */
 
     VI = V[IP.x()] * 5;
+}
+
+void CPU::ld_dt() noexcept
+{
+    /*
+    * Fx07 - LD Vx, DT
+    * Set Vx = delay timer value.
+    *
+    * The value of DT is placed into Vx.
+    */
+
+    V[IP.x()] = DT.read();
+}
+
+void CPU::set_dt() noexcept
+{
+    /*
+    * Fx15 - LD DT, Vx
+    * Set delay timer = Vx.
+    *
+    * DT is set equal to the value of Vx.
+    */
+
+    DT.set(V[IP.x()]);
 }

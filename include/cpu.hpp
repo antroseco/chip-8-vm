@@ -1,6 +1,7 @@
 #pragma once
 
 #include "instruction.hpp"
+#include "timer.hpp"
 #include "window.hpp"
 
 #include <array>
@@ -44,6 +45,8 @@ class CPU
     uint16_t VI = 0;                 // 16-bit address register
     uint16_t PC = 0x200;             // Program Counter
     Instruction IP;                  // Instruction Pointer
+
+    Timer DT; // Delay Timer
 
     Window* const Display;
 
@@ -92,6 +95,9 @@ class CPU
     void ld_vx();    // TODO: test
     void str_bcd();  // TODO: test
     void ld_digit(); // TODO: test
+
+    void ld_dt() noexcept;  // TODO: test
+    void set_dt() noexcept; // TODO: test
 
 public:
     CPU() = delete;
