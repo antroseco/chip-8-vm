@@ -43,7 +43,7 @@ bool CPU::Step()
 void CPU::Run()
 {
     while (Step())
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        ;
 }
 
 const std::array<uint8_t, 0x1000>& CPU::read_memory() const noexcept

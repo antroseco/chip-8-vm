@@ -1,19 +1,20 @@
-#include <atomic>
-#include <future>
-#include <thread>
+#include <chrono>
+#include <cstdint>
+#include <type_traits>
 
 class Timer
 {
-    std::atomic_uint8_t value = 0;
-    std::thread worker;
-    std::promise<void> stop_promise;
-    std::future<void> stop_future = stop_promise.get_future();
+    typedef std::conditional<
+        std::chrono::high_resolution_clock::is_steady,
+        std::chrono::high_resolution_clock,
+        std::chrono::steady_clock>::type clock_t;
 
-    void decrement() noexcept;
+    clock_t::time_point epoch;
+    uint8_t value = 0;
 
 public:
     Timer();
-    ~Timer();
+    ~Timer() = default;
 
     void set(uint8_t x) noexcept;
     uint8_t read() const noexcept;
