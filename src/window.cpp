@@ -68,21 +68,21 @@ bool Window::DrawSprite(const std::vector<std::uint8_t>& Sprite, std::size_t x, 
 {
     bool ErasedPixel = false;
 
-    auto Line = Data.begin();
-    std::advance(Line, y);
-
-    for (std::uint8_t Byte : Sprite)
+    for (std::size_t i = 0; i < Sprite.size(); ++i)
     {
-        std::bitset<Columns> Mask = Byte;
-        Mask = ror(Mask, x + 8 - Mask.size());
+        // Check if we are still drawing inside the screen
+        if (y + i >= Lines)
+            break;
 
-        if (!ErasedPixel && ((*Line ^ Mask) != (*Line | Mask)))
+        std::bitset<Columns>& Line = Data[y + i];
+        const std::bitset<Columns> Mask = ror(Sprite[i], x + 8 - Columns);
+
+        if (!ErasedPixel && ((Line ^ Mask) != (Line | Mask)))
             ErasedPixel = true;
 
-        *Line ^= Mask;
+        Line ^= Mask;
 
-        DrawLine(std::distance(Data.begin(), Line));
-        std::advance(Line, 1);
+        DrawLine(y + i);
     }
 
     return ErasedPixel;
