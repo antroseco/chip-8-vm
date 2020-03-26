@@ -52,7 +52,7 @@ void CPU::Run()
         steady_clock>::type;
 
     constexpr std::size_t target_frequency = 600;
-    constexpr auto instruction_cost = duration_cast<clock_type::duration>(seconds{1}) / target_frequency;
+    auto instruction_cost = duration_cast<clock_type::duration>(seconds{1}) / target_frequency;
 
     std::size_t total_cycles = 0;
     const auto epoch = clock_type::now();
@@ -61,8 +61,15 @@ void CPU::Run()
 
     while (true)
     {
+        /*
+        * The CPU gets a budget equal to the amount of time slept.
+        * If the next instruction costs less than its budget, then the
+        * instruction cost is subtracted from the budget and the instruction
+        * is executed. Any budget surplus is carried over to the next cycle.
+        */
+
         const auto start = clock_type::now();
-        std::this_thread::sleep_for(milliseconds(50));
+        std::this_thread::sleep_for(milliseconds{50});
         const auto end = clock_type::now();
 
         budget += (end - start);
@@ -77,16 +84,23 @@ void CPU::Run()
             ++total_cycles;
         }
 
+        using period = clock_type::duration::period;
+
+        const double ticks_elapsed = (end - epoch).count();
+        const double time_elapsed = ticks_elapsed * period::num / period::den;
+        const std::size_t average = std::round(total_cycles / time_elapsed);
+
+        // Naive instruction cost adjustment
+        if (average < target_frequency)
+            instruction_cost -= nanoseconds{500};
+        else if (average > target_frequency)
+            instruction_cost += nanoseconds{500};
+
+        // Print average clock speed and current instruction cost
         if (Display)
         {
-            using period = clock_type::duration::period;
-
-            const double ticks_elapsed = (end - epoch).count();
-            const double time_elapsed = ticks_elapsed * period::num / period::den;
-            const double average = total_cycles / time_elapsed;
-
-            const std::string text = std::to_string(average);
-            Display->WriteString(0, 0, text.substr(0, text.find('.')) + " Hz");
+            Display->WriteString(0, 0, std::to_string(average) + " Hz");
+            Display->WriteString(1, 0, std::to_string(instruction_cost.count()));
         }
     }
 }
