@@ -1,6 +1,7 @@
 #include "cpu.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <deque>
 #include <string>
@@ -204,8 +205,17 @@ bool CPU::Execute()
     case 0xD000:
         drw();
         return true;
+    case 0xE09E:
+        skp_key();
+        return true;
+    case 0xE0A1:
+        sknp_key();
+        return true;
     case 0xF007:
         ld_dt();
+        return true;
+    case 0xF00A:
+        ld_key();
         return true;
     case 0xF015:
         set_dt();
@@ -242,6 +252,48 @@ void CPU::SetPC(const uint16_t Address)
 
     PC = Address;
     IP.read(std::next(Memory.data(), PC));
+}
+
+uint8_t CPU::MapKey(char Input) noexcept
+{
+    // std::toupper only accepts unsigned chars, but it's probably not an issue
+    switch (std::toupper(Input))
+    {
+    case '1':
+        return 0x1;
+    case '2':
+        return 0x2;
+    case '3':
+        return 0x3;
+    case '4':
+        return 0xC;
+    case 'Q':
+        return 0x4;
+    case 'W':
+        return 0x5;
+    case 'E':
+        return 0x6;
+    case 'R':
+        return 0xD;
+    case 'A':
+        return 0x7;
+    case 'S':
+        return 0x8;
+    case 'D':
+        return 0x9;
+    case 'F':
+        return 0xE;
+    case 'Z':
+        return 0xA;
+    case 'X':
+        return 0x0;
+    case 'C':
+        return 0xB;
+    case 'V':
+        return 0xF;
+    default:
+        return 0xFF;
+    }
 }
 
 bool CPU::jp()
@@ -722,4 +774,80 @@ void CPU::set_dt() noexcept
     */
 
     DT.set(V[IP.x()]);
+}
+
+void CPU::skp_key() noexcept
+{
+    /*
+    * Ex9E - SKP Vx
+    * Skip next instruction if key with the value of Vx is pressed.
+    *
+    * Checks the keyboard, and if the key corresponding to the value of Vx is
+    * currently in the down position, PC is increased by 2.
+    */
+
+    if (Display == nullptr)
+        return;
+
+    char input = Display->GetKey();
+    uint8_t key = MapKey(input);
+
+    // MapKey(input) returns 0xFF for invalid input
+    if (key != 0xFF && key == V[IP.x()])
+    {
+        AdvancePC(2);
+        UpdatePC = false;
+    }
+}
+
+void CPU::sknp_key() noexcept
+{
+    /*
+    * ExA1 - SKNP Vx
+    * Skip next instruction if key with the value of Vx is not pressed.
+    *
+    * Checks the keyboard, and if the key corresponding to the value of Vx is
+    * currently in the up position, PC is increased by 2.
+    */
+
+    if (Display == nullptr)
+        return;
+
+    char input = Display->GetKey();
+    uint8_t key = MapKey(input);
+
+    // MapKey(input) returns 0xFF for invalid input
+    if (key != 0xFF && key != V[IP.x()])
+    {
+        AdvancePC(2);
+        UpdatePC = false;
+    }
+}
+
+void CPU::ld_key() noexcept
+{
+    /*
+    * Fx0A - LD Vx, K
+    * Wait for a key press, store the value of the key in Vx.
+    *
+    * All execution stops until a key is pressed, then the value of that key
+    * is stored in Vx.
+    */
+
+    if (Display == nullptr)
+    {
+        // If no Display is attached, just load 0
+        V[IP.x()] = 0;
+        return;
+    }
+
+    char input = Display->GetKey();
+    uint8_t key = MapKey(input);
+
+    // MapKey(input) returns 0xFF for invalid input
+    if (key != 0xFF)
+        V[IP.x()] = key;
+    else
+        // Repeat this instruction
+        UpdatePC = false;
 }

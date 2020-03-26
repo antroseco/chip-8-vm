@@ -59,6 +59,8 @@ class CPU
     void AdvancePC(const uint_fast16_t Instructions);
     void SetPC(const uint16_t Address);
 
+    static uint8_t MapKey(char Input) noexcept; // TODO: test
+
     // Instruction set
     bool jp();
     bool jp_v0();
@@ -98,6 +100,10 @@ class CPU
 
     void ld_dt() noexcept;  // TODO: test
     void set_dt() noexcept; // TODO: test
+
+    void skp_key() noexcept;  // TODO: test
+    void sknp_key() noexcept; // TODO: test
+    void ld_key() noexcept;   // TODO: test
 
 public:
     CPU() = delete;

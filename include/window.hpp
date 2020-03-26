@@ -37,4 +37,5 @@ public:
     void WriteString(int y, int x, const std::string& String) const;
     // Draws a sprite, with each byte on a separate line
     bool DrawSprite(const std::vector<std::uint8_t>& Sprite, std::size_t x, std::size_t y);
+    char GetKey() const;
 };

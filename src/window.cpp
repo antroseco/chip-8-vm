@@ -46,6 +46,7 @@ ScreenGuard::~ScreenGuard()
 
 Window::Window(int x0, int y0) : Handle(newwin(Lines + 2, Columns * 2 + 2, y0, x0))
 {
+    nodelay(Handle, true); // Make getch a non-blocking call
     wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
@@ -108,4 +109,11 @@ void Window::Clear()
 
     wclear(Handle);
     wborder(Handle, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+char Window::GetKey() const
+{
+    const int input = wgetch(Handle);
+
+    return input == ERR ? 0 : input;
 }
