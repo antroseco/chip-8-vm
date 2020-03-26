@@ -1,7 +1,9 @@
 #include "cpu.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <string>
+#include <thread>
 
 constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
@@ -42,8 +44,51 @@ bool CPU::Step()
 
 void CPU::Run()
 {
-    while (Step())
-        ;
+    using namespace std::chrono;
+
+    using clock_type = std::conditional<
+        high_resolution_clock::is_steady,
+        high_resolution_clock,
+        steady_clock>::type;
+
+    constexpr std::size_t target_frequency = 600;
+    constexpr auto instruction_cost = duration_cast<clock_type::duration>(seconds{1}) / target_frequency;
+
+    std::size_t total_cycles = 0;
+    const auto epoch = clock_type::now();
+
+    clock_type::duration budget{0};
+
+    while (true)
+    {
+        const auto start = clock_type::now();
+        std::this_thread::sleep_for(milliseconds(50));
+        const auto end = clock_type::now();
+
+        budget += (end - start);
+
+        while (budget >= instruction_cost)
+        {
+            budget -= instruction_cost;
+
+            if (!Step())
+                return;
+
+            ++total_cycles;
+        }
+
+        if (Display)
+        {
+            using period = clock_type::duration::period;
+
+            const double ticks_elapsed = (end - epoch).count();
+            const double time_elapsed = ticks_elapsed * period::num / period::den;
+            const double average = total_cycles / time_elapsed;
+
+            const std::string text = std::to_string(average);
+            Display->WriteString(0, 0, text.substr(0, text.find('.')) + " Hz");
+        }
+    }
 }
 
 const std::array<uint8_t, 0x1000>& CPU::read_memory() const noexcept
