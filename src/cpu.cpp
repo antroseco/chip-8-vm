@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <deque>
 #include <string>
 #include <thread>
 
@@ -54,10 +55,10 @@ void CPU::Run()
     constexpr std::size_t target_frequency = 600;
     auto instruction_cost = duration_cast<clock_type::duration>(seconds{1}) / target_frequency;
 
-    std::size_t total_cycles = 0;
-    const auto epoch = clock_type::now();
-
     clock_type::duration budget{0};
+
+    // Circular buffer used to calculate average clock speed
+    std::deque<clock_type::time_point> timepoints = {clock_type::now()};
 
     while (true)
     {
@@ -81,14 +82,16 @@ void CPU::Run()
             if (!Step())
                 return;
 
-            ++total_cycles;
+            timepoints.emplace_front(clock_type::now());
+            if (timepoints.size() > target_frequency * 4)
+                timepoints.pop_back();
         }
 
         using period = clock_type::duration::period;
 
-        const double ticks_elapsed = (end - epoch).count();
+        const double ticks_elapsed = (timepoints.front() - timepoints.back()).count();
         const double time_elapsed = ticks_elapsed * period::num / period::den;
-        const std::size_t average = std::round(total_cycles / time_elapsed);
+        const std::size_t average = std::round(timepoints.size() / time_elapsed);
 
         // Naive instruction cost adjustment
         if (average < target_frequency)
