@@ -305,12 +305,13 @@ bool CPU::jp()
     * The interpreter sets the program counter to nnn.
     */
 
+    UpdatePC = false;
+
     // Check if we are stuck in a loop
     if (PC == IP.nnn())
         return false;
 
     SetPC(IP.nnn());
-    UpdatePC = false;
 
     return true;
 }
@@ -601,12 +602,13 @@ bool CPU::jp_v0()
     * The program counter is set to nnn plus the value of V0.
     */
 
+    UpdatePC = false;
+
     // Check if we are stuck in a loop
     if (PC == IP.nnn() + V[0])
         return false;
 
     SetPC(IP.nnn() + V[0]);
-    UpdatePC = false;
 
     return true;
 }

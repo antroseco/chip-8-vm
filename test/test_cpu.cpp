@@ -39,7 +39,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
         REQUIRE(cpu.read_pc() == 0x200);
 
-        cpu.Step();
+        REQUIRE_NOTHROW(cpu.Step());
 
         REQUIRE(cpu.read_pc() == i);
     }
@@ -53,6 +53,21 @@ TEST_CASE("jp (1nnn)", "[cpu]")
         CPU cpu(make_rom(instructions), nullptr);
 
         REQUIRE_THROWS_AS(cpu.Step(), std::out_of_range);
+    }
+
+    SECTION("Jumping to the current instruction doesn't update the PC")
+    {
+        std::vector<uint16_t> instructions{
+            0x1200 // jp (jump to 0x200)
+        };
+
+        CPU cpu(make_rom(instructions), nullptr);
+
+        REQUIRE(cpu.read_pc() == 0x200);
+
+        REQUIRE_NOTHROW(cpu.Step());
+
+        REQUIRE(cpu.read_pc() == 0x200);
     }
 }
 
@@ -95,6 +110,23 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
         REQUIRE_NOTHROW(cpu.Step());
         REQUIRE_THROWS_AS(cpu.Step(), std::out_of_range);
+    }
+
+    SECTION("Jumping to the current instruction doesn't update the PC")
+    {
+        std::vector<uint16_t> instructions{
+            0x60ff, // ld_kk (load 0xff to V0)
+            0xB103  // jp_v0 (jump to 0x103 + V0)
+        };
+
+        CPU cpu(make_rom(instructions), nullptr);
+
+        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE(cpu.read_registers()[0] == 0xff);
+        REQUIRE(cpu.read_pc() == 0x202);
+
+        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE(cpu.read_pc() == 0x202);
     }
 }
 
