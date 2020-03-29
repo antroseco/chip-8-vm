@@ -653,7 +653,7 @@ TEST_CASE("add_i (Fx1E)", "[cpu]")
 
 TEST_CASE("rnd (Cxkk)", "[cpu]")
 {
-    auto kk = GENERATE(take(100, random(0x00, 0xff)));
+    auto kk = GENERATE(take(100, random(0x01, 0xff)));
 
     std::vector<uint16_t> instructions;
     for (int i = 0; i < 16; ++i)
