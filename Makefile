@@ -8,7 +8,7 @@ INC_DIRS := include lib
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 
 # Compiler options
-CXX := clang++
+CXX := clang++-10
 COMMONFLAGS := -flto -g -O1
 CXXFLAGS := $(INC_FLAGS) $(COMMONFLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic
 LDFLAGS := $(COMMONFLAGS) -lncurses
