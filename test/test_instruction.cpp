@@ -1,20 +1,28 @@
 #include "catch.hpp"
 #include "instruction.hpp"
 
-TEST_CASE("Instruction struct can read memory addresses correctly", "[instruction]")
+#include <array>
+
+TEST_CASE("Instruction struct can be initialized with an address or value", "[instruction]")
 {
-    Instruction instruction = 1;
+    Instruction instruction;
+    std::array<std::uint8_t, 2> buffer{0x12, 0x34};
 
-    REQUIRE(instruction.raw == 1);
+    SECTION("Can be default initialized")
+    {
+        REQUIRE(instruction.raw == 0);
+    }
 
-    const uint8_t buffer[2] = {0x12, 0x34};
-    instruction.read(&buffer);
+    SECTION("Can read an address")
+    {
+        instruction.read(buffer.data());
 
-    REQUIRE(instruction.raw == 0x1234);
+        REQUIRE(instruction.raw == 0x1234);
+    }
 
     SECTION("Can be initialized with a memory address")
     {
-        Instruction instruction2(&buffer);
+        Instruction instruction2{buffer.data()};
 
         REQUIRE(instruction2.raw == 0x1234);
     }
@@ -22,8 +30,8 @@ TEST_CASE("Instruction struct can read memory addresses correctly", "[instructio
 
 TEST_CASE("Instruction struct exposes the raw opcode", "[instruction]")
 {
-    const int i = GENERATE(take(100, random(0x0000, 0xffff)));
-    const Instruction instruction = i;
+    const std::uint16_t i = GENERATE(take(100, random(0x0000, 0xffff)));
+    const Instruction instruction{i};
 
     REQUIRE(instruction.raw == i);
 
@@ -35,7 +43,8 @@ TEST_CASE("Instruction struct exposes the raw opcode", "[instruction]")
 
 TEST_CASE("Instruction struct can decode instructions", "[instruction]")
 {
-    const Instruction instruction = GENERATE(take(100, random(0x0000, 0xffff)));
+    const std::uint16_t i = GENERATE(take(100, random(0x0000, 0xffff)));
+    const Instruction instruction{i};
 
     SECTION("Decode x")
     {
@@ -66,14 +75,14 @@ TEST_CASE("Instruction struct can decode instructions", "[instruction]")
 #define TEST_GOOD_OPCODE(x, expected)              \
     SECTION(#x)                                    \
     {                                              \
-        Instruction instruction = x;               \
+        Instruction instruction{x};                \
         REQUIRE(instruction.opcode() == expected); \
     }
 
 #define TEST_BAD_OPCODE(x)                    \
     SECTION(#x)                               \
     {                                         \
-        Instruction instruction = x;          \
+        Instruction instruction{x};           \
         REQUIRE_THROWS(instruction.opcode()); \
     }
 

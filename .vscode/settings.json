@@ -61,6 +61,7 @@
         "variant": "cpp",
         "shared_mutex": "cpp",
         "bit": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "cassert": "cpp"
     }
 }

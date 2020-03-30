@@ -1,19 +1,30 @@
 #include "instruction.hpp"
 
+#include <algorithm>
 #include <arpa/inet.h>
+#include <cassert>
 #include <stdexcept>
 
-Instruction::Instruction(uint16_t instruction) : raw(instruction) {}
-
-Instruction::Instruction(const void* address)
+Instruction::Instruction(const std::uint8_t* address)
 {
     read(address);
 }
 
-void Instruction::read(const void* address)
+void Instruction::read(const std::uint8_t* address)
 {
-    auto* const pointer = reinterpret_cast<const uint16_t*>(address);
-    raw = htons(*pointer);
+    assert(address != nullptr);
+
+    union {
+        std::uint16_t word;
+        std::array<std::uint8_t, sizeof(word)> bytes;
+    };
+
+    /*
+    * Copy byte-by-byte to a buffer to avoid unaligned memory accesses,
+    * which are undefined behaviour (shorts are aligned to an even address)
+    */
+    std::copy_n(address, bytes.size(), bytes.begin());
+    raw = htons(word);
 }
 
 uint_fast16_t Instruction::opcode() const

@@ -22,11 +22,11 @@ struct Instruction
     * oxyn (2 operands, 1 constant)
     */
 
-    Instruction() = delete;
-    Instruction(uint16_t instruction);
-    Instruction(const void* address);
+    Instruction() = default;
+    constexpr explicit Instruction(std::uint16_t instruction) : raw(instruction) {};
+    explicit Instruction(const std::uint8_t* address);
 
-    void read(const void* address);
+    void read(const std::uint8_t* address);
 
     uint16_t raw;
 
