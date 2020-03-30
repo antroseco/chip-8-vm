@@ -58,6 +58,7 @@ test: $(TEST_OBJS)
 # libFuzzer executable
 fuzz: $(FUZZ_OBJS)
 	$(CXX) $(FUZZ_OBJS) -o $(BUILD_ROOT)/$(FUZZ_EXEC) $(FUZZFLAGS) $(LDFLAGS)
+	@./$(BUILD_ROOT)/$(FUZZ_EXEC) corpus/ -max_len=4096 -dict=fuzzing_dictionary.txt -timeout=10
 
 .PHONY: clean
 
