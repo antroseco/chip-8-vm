@@ -26,10 +26,14 @@ constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(const std::vector<uint8_t>& ROM, Window* Display) : IP(ROM.data()), Display(Display)
+CPU::CPU(const std::vector<uint8_t>& ROM, Window* Display) : Display(Display)
 {
+    const auto program_address = std::next(Memory.begin(), 0x200);
+
     std::copy(Font.cbegin(), Font.cend(), Memory.begin());
-    std::copy_n(ROM.cbegin(), std::min(0xDFFul, ROM.size()), std::next(Memory.begin(), 0x200));
+    std::copy_n(ROM.cbegin(), std::min(0xDFFul, ROM.size()), program_address);
+
+    IP.read(program_address);
 }
 
 bool CPU::Step()
@@ -642,6 +646,9 @@ void CPU::drw()
     * coordinates of the display, it wraps around to the opposite side of the
     * screen.
     */
+
+    if (VI + IP.n() >= 4096)
+        throw std::out_of_range("todo");
 
     auto address = std::next(Memory.cbegin(), VI);
 
