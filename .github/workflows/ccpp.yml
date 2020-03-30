@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -24,3 +24,19 @@ jobs:
       run: make
     - name: make test
       run: make test
+
+  fuzz:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
+        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
+        sudo apt-get update
+        sudo apt-get install -y clang-10 lld-10 libncurses-dev
+    - name: make fuzz
+      run: make fuzz

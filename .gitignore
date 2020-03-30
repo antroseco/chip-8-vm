@@ -33,6 +33,3 @@
 
 # build directory
 build/
-
-# libFuzzer corpus directory
-corpus/
