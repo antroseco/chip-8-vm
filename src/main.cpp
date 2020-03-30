@@ -13,7 +13,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
     CPU Processor{ROM, nullptr};
     try
     {
-        while (Processor.Step())
+        for (int i = 0; Processor.Step() && i < 1000; ++i)
             ;
     }
     catch (std::logic_error)
