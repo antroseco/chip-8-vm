@@ -11,7 +11,7 @@ INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 CXX := clang++-10
 COMMONFLAGS := -flto -g -O1
 CXXFLAGS := $(INC_FLAGS) $(COMMONFLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic
-LDFLAGS := $(COMMONFLAGS) -lncurses
+LDFLAGS := $(COMMONFLAGS) -lsfml-graphics -lsfml-window -lsfml-system
 FUZZFLAGS := -fsanitize=fuzzer,address,undefined -DFUZZING
 
 # Project directories

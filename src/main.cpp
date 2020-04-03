@@ -1,9 +1,10 @@
 #include "cpu.hpp"
+#include "graphics.hpp"
 #include "rom.hpp"
-#include "window.hpp"
+
+#include <SFML/Window.hpp>
 
 #include <iostream>
-#include <unistd.h>
 
 #ifdef FUZZING
 
@@ -55,17 +56,65 @@ int main(int argc, char* argv[])
 
     try
     {
-        ScreenGuard Screen;
-        Window Display(0, 0);
+        bool not_done = true;
 
-        CPU Processor(ROM, &Display);
+        const sf::VideoMode resolution{Frame::Columns * 10, Frame::Lines * 10};
+        sf::RenderWindow window(resolution, "CHIP-8 Virtual Machine");
 
-        Processor.Run();
+        std::cout << "Using OpenGL " << window.getSettings().majorVersion
+                  << "." << window.getSettings().minorVersion << std::endl;
 
-        Display.WriteString(31, 0, "Done");
-        Display.Refresh();
+        window.setFramerateLimit(60);
+        Frame::prepareTarget(window);
 
-        sleep(5);
+        Frame frame;
+        CPU cpu(ROM, &frame);
+
+        sf::Clock clock;
+        int frame_count = 0;
+
+        while (window.isOpen())
+        {
+            bool force_redraw = false;
+
+            // Event processing
+            sf::Event event;
+            while (window.pollEvent(event))
+            {
+                // Request for closing the window
+                if (event.type == sf::Event::Closed)
+                {
+                    window.close();
+                    return EXIT_SUCCESS;
+                }
+                else if (event.type == sf::Event::Resized)
+                {
+                    force_redraw = true;
+                }
+
+                // TODO: Process more event types
+            }
+
+            // TODO: Untie CPU clockspeed from framerate
+            for (int i = 0; i < 9 && not_done; ++i)
+                not_done = cpu.Step();
+
+            frame.render(window, force_redraw);
+            window.display();
+
+            if (frame_count < 100)
+            {
+                frame_count++;
+            }
+            else
+            {
+                sf::Time elapsed = clock.getElapsedTime();
+                std::cout << (float)elapsed.asMilliseconds() / frame_count << " ms (" << frame_count / elapsed.asSeconds() << " fps)\n";
+
+                frame_count = 0;
+                clock.restart();
+            }
+        }
     }
     catch (const std::exception& e)
     {
