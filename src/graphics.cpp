@@ -1,0 +1,83 @@
+#include "graphics.hpp"
+
+#include <bitset>
+#include <iostream>
+
+[[nodiscard]] static constexpr std::uint64_t ror(std::uint64_t x, std::size_t n)
+{
+    return (x >> n) | (x << (-n & (64 * 8 - 1)));
+}
+
+bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y) noexcept
+{
+    bool collision = false;
+
+    // Sprites must wrap around if they are drawn completly off screen
+    // TODO: Test this
+    x %= Columns;
+    y %= Lines;
+
+    for (std::size_t i = 0; i < sprite.size() && y + i < Lines; ++i)
+    {
+        std::uint64_t& line = buffer[y + i];
+        const std::uint64_t mask = ror(sprite[i], x + 8 - Columns);
+
+        if (!collision && ((line ^ mask) != (line | mask)))
+            collision = true;
+
+        line ^= mask;
+    }
+
+    updated = true;
+
+    return collision;
+}
+
+void Frame::clear() noexcept
+{
+    buffer.fill(0);
+    updated = true;
+}
+
+void Frame::render(sf::RenderTarget& target, bool force = false)
+{
+    if (!updated && !force)
+        return;
+
+    sf::RectangleShape pixel({1.f, 1.f});
+    pixel.setFillColor(sf::Color::White);
+
+    target.clear(sf::Color::Black);
+
+    for (std::size_t i = 0; i < Lines; ++i)
+    {
+        float y = i;
+        std::uint64_t line = buffer[i];
+
+        for (std::size_t j = 0; j < Columns; ++j)
+        {
+            if (line & (1u << j))
+            {
+                float x = 63 - j;
+
+                pixel.setPosition({x, y});
+                target.draw(pixel);
+            }
+        }
+    }
+
+    updated = false;
+}
+
+void Frame::prepareTarget(sf::RenderTarget& target)
+{
+    /*
+    * The render target keeps its own copy of the view object, so it is not
+    * necessary to keep the original one alive after calling this function.
+    *
+    *  https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1RenderTarget.php#a063db6dd0a14913504af30e50cb6d946
+    */
+
+    sf::View view{sf::FloatRect{0.f, 0.f, Columns, Lines}};
+    target.setView(view);
+}

@@ -7,6 +7,8 @@
 #include <string>
 #include <thread>
 
+#include <SFML/Window.hpp>
+
 constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -26,7 +28,7 @@ constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(const std::vector<uint8_t>& ROM, Window* Display) : Display(Display)
+CPU::CPU(const std::vector<uint8_t>& ROM, Frame* Display) : Display(Display)
 {
     const auto program_address = std::next(Memory.begin(), 0x200);
 
@@ -104,11 +106,11 @@ void CPU::Run()
         else if (average > target_frequency)
             instruction_cost += nanoseconds{500};
 
-        // Print average clock speed and current instruction cost
+        // TODO: Print average clock speed and current instruction cost
         if (Display)
         {
-            Display->WriteString(0, 0, std::to_string(average) + " Hz");
-            Display->WriteString(1, 0, std::to_string(instruction_cost.count()));
+            //Display->WriteString(0, 0, std::to_string(average) + " Hz");
+            //Display->WriteString(1, 0, std::to_string(instruction_cost.count()));
         }
     }
 }
@@ -224,6 +226,9 @@ bool CPU::Execute()
     case 0xF015:
         set_dt();
         return true;
+    case 0xF018:
+        // TODO: Implement sound
+        return true;
     case 0xF01E:
         add_i();
         return true;
@@ -260,6 +265,7 @@ void CPU::SetPC(const uint16_t Address)
 
 uint8_t CPU::MapKey(char Input) noexcept
 {
+    // TODO: Consider removing
     // std::toupper only accepts unsigned chars, but it's probably not an issue
     switch (std::toupper(Input))
     {
@@ -297,6 +303,47 @@ uint8_t CPU::MapKey(char Input) noexcept
         return 0xF;
     default:
         return 0xFF;
+    }
+}
+
+sf::Keyboard::Key ReverseMap(uint8_t key)
+{
+    switch (key)
+    {
+    case 0x0:
+        return sf::Keyboard::Numpad0; //X;
+    case 0x1:
+        return sf::Keyboard::Numpad1;
+    case 0x2:
+        return sf::Keyboard::Numpad2;
+    case 0x3:
+        return sf::Keyboard::Numpad3;
+    case 0x4:
+        return sf::Keyboard::Numpad4; //sf::Keyboard::Q;
+    case 0x5:
+        return sf::Keyboard::Numpad5; //sf::Keyboard::W;
+    case 0x6:
+        return sf::Keyboard::Numpad6; //sf::Keyboard::E;
+    case 0x7:
+        return sf::Keyboard::Numpad7; //sf::Keyboard::A;
+    case 0x8:
+        return sf::Keyboard::Numpad8; //sf::Keyboard::S;
+    case 0x9:
+        return sf::Keyboard::Numpad9; //sf::Keyboard::D;
+    case 0xA:
+        return sf::Keyboard::A; //Z;
+    case 0xB:
+        return sf::Keyboard::B; //C;
+    case 0xC:
+        return sf::Keyboard::C; //sf::Keyboard::Num4;
+    case 0xD:
+        return sf::Keyboard::D; //sf::Keyboard::R;
+    case 0xE:
+        return sf::Keyboard::E; //F;
+    case 0xF:
+        return sf::Keyboard::F; //V;
+    default:
+        throw std::runtime_error("invalid key");
     }
 }
 
@@ -528,6 +575,7 @@ void CPU::shr() noexcept
     */
 
     // Make a copy of the data in case it's stored in VF
+    // TODO: Implement modern behaviour and load from Vx
     const uint8_t data = V[IP.y()];
 
     VF = data & 0x01;
@@ -545,6 +593,7 @@ void CPU::shl() noexcept
     */
 
     // Make a copy of the data in case it's stored in VF
+    // TODO: Implement modern behaviour and load from Vx
     const uint8_t data = V[IP.y()];
 
     VF = (data & 0x80) >> 7;
@@ -655,11 +704,8 @@ void CPU::drw()
     std::vector<uint8_t> Sprite;
     std::copy_n(address, IP.n(), std::back_inserter(Sprite));
 
-    if (Display != nullptr)
-    {
-        VF = Display->DrawSprite(Sprite, V[IP.x()], V[IP.y()]);
-        Display->Refresh();
-    }
+    if (Display)
+        VF = Display->drawSprite(Sprite, V[IP.x()], V[IP.y()]);
 }
 
 void CPU::cls()
@@ -669,11 +715,8 @@ void CPU::cls()
     * Clear the display.
     */
 
-    if (Display != nullptr)
-    {
-        Display->Clear();
-        Display->Refresh();
-    }
+    if (Display)
+        Display->clear();
 }
 
 void CPU::add_i() noexcept
@@ -795,14 +838,9 @@ void CPU::skp_key() noexcept
     * currently in the down position, PC is increased by 2.
     */
 
-    if (Display == nullptr)
-        return;
+    auto key = ReverseMap(V[IP.x()]);
 
-    char input = Display->GetKey();
-    uint8_t key = MapKey(input);
-
-    // MapKey(input) returns 0xFF for invalid input
-    if (key != 0xFF && key == V[IP.x()])
+    if (sf::Keyboard::isKeyPressed(key))
     {
         AdvancePC(2);
         UpdatePC = false;
@@ -819,14 +857,9 @@ void CPU::sknp_key() noexcept
     * currently in the up position, PC is increased by 2.
     */
 
-    if (Display == nullptr)
-        return;
+    auto key = ReverseMap(V[IP.x()]);
 
-    char input = Display->GetKey();
-    uint8_t key = MapKey(input);
-
-    // MapKey(input) returns 0xFF for invalid input
-    if (key != 0xFF && key != V[IP.x()])
+    if (!sf::Keyboard::isKeyPressed(key))
     {
         AdvancePC(2);
         UpdatePC = false;
@@ -843,20 +876,16 @@ void CPU::ld_key() noexcept
     * is stored in Vx.
     */
 
-    if (Display == nullptr)
+    for (uint8_t i = 0; i < 16; ++i)
     {
-        // If no Display is attached, just load 0
-        V[IP.x()] = 0;
-        return;
+        auto key = ReverseMap(i);
+        if (sf::Keyboard::isKeyPressed(key))
+        {
+            V[IP.x()] = i;
+            return;
+        }
     }
 
-    char input = Display->GetKey();
-    uint8_t key = MapKey(input);
-
-    // MapKey(input) returns 0xFF for invalid input
-    if (key != 0xFF)
-        V[IP.x()] = key;
-    else
-        // Repeat this instruction
-        UpdatePC = false;
+    // Execute this instruction again
+    UpdatePC = false;
 }

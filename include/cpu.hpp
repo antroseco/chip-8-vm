@@ -2,7 +2,7 @@
 
 #include "instruction.hpp"
 #include "timer.hpp"
-#include "window.hpp"
+#include "graphics.hpp"
 
 #include <array>
 #include <random>
@@ -48,7 +48,7 @@ class CPU
 
     Timer DT; // Delay Timer
 
-    Window* const Display;
+    Frame* const Display;
 
     std::random_device Generator;                        // Random number generator
     std::uniform_int_distribution<uint8_t> Distribution; // Random number distribution
@@ -107,7 +107,7 @@ class CPU
 
 public:
     CPU() = delete;
-    CPU(const std::vector<uint8_t>& ROM, Window* Display);
+    CPU(const std::vector<uint8_t>& ROM, Frame* Display);
     bool Step();
     void Run();
 
