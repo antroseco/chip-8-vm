@@ -16,5 +16,5 @@ std::vector<uint8_t> LoadFile(const std::string& Path)
 
 bool CheckROM(const std::vector<uint8_t>& ROM) noexcept
 {
-    return ROM.size() < 0xDFF;
+    return !ROM.empty() && ROM.size() < 0xDFF;
 }
