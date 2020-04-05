@@ -23,17 +23,17 @@ struct Instruction
     */
 
     Instruction() = default;
-    constexpr explicit Instruction(std::uint16_t instruction) : raw(instruction) {};
+    constexpr explicit Instruction(std::uint16_t instruction) : raw(instruction){};
     explicit Instruction(const std::uint8_t* address);
 
     void read(const std::uint8_t* address);
 
-    uint16_t raw;
+    std::uint16_t raw;
 
-    uint_fast16_t opcode() const;
-    uint_fast8_t x() const noexcept;
-    uint_fast8_t y() const noexcept;
-    uint_fast8_t n() const noexcept;
-    uint_fast8_t kk() const noexcept;
-    uint_fast16_t nnn() const noexcept;
+    std::uint_fast16_t opcode() const;
+    std::uint_fast8_t x() const noexcept;
+    std::uint_fast8_t y() const noexcept;
+    std::uint_fast8_t n() const noexcept;
+    std::uint_fast8_t kk() const noexcept;
+    std::uint_fast16_t nnn() const noexcept;
 };

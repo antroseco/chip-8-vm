@@ -12,12 +12,12 @@ class Timer
         std::chrono::steady_clock>::type clock_t;
 
     clock_t::time_point epoch;
-    uint8_t value = 0;
+    std::uint8_t value = 0;
 
 public:
     Timer();
     ~Timer() = default;
 
-    void set(uint8_t x) noexcept;
-    uint8_t read() const noexcept;
+    void set(std::uint8_t x) noexcept;
+    std::uint8_t read() const noexcept;
 };

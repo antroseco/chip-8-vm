@@ -8,9 +8,9 @@
 
 #ifdef FUZZING
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
+extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* Data, std::size_t Size)
 {
-    std::vector<uint8_t> ROM{Data, Data + Size};
+    std::vector<std::uint8_t> ROM{Data, Data + Size};
     CPU Processor{ROM, nullptr};
     try
     {

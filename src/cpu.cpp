@@ -9,7 +9,7 @@
 
 #include <SFML/Window.hpp>
 
-constexpr std::array<uint8_t, 80> Font = {
+constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xf0, 0x10, 0xf0, 0x80, 0xf0, // 2
@@ -28,7 +28,7 @@ constexpr std::array<uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(const std::vector<uint8_t>& ROM, Frame* Display) : Display(Display)
+CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display) : Display(Display)
 {
     const auto program_address = std::next(Memory.begin(), 0x200);
 
@@ -115,17 +115,17 @@ void CPU::Run()
     }
 }
 
-const std::array<uint8_t, 0x1000>& CPU::read_memory() const noexcept
+const std::array<std::uint8_t, 0x1000>& CPU::read_memory() const noexcept
 {
     return Memory;
 }
 
-const std::stack<uint16_t>& CPU::read_stack() const noexcept
+const std::stack<std::uint16_t>& CPU::read_stack() const noexcept
 {
     return Stack;
 }
 
-const std::array<uint8_t, 16>& CPU::read_registers() const noexcept
+const std::array<std::uint8_t, 16>& CPU::read_registers() const noexcept
 {
     return V;
 }
@@ -249,12 +249,12 @@ bool CPU::Execute()
     throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
 }
 
-void CPU::AdvancePC(const uint_fast16_t Instructions)
+void CPU::AdvancePC(const std::uint_fast16_t Instructions)
 {
     SetPC(PC + Instructions * 2);
 }
 
-void CPU::SetPC(const uint16_t Address)
+void CPU::SetPC(const std::uint16_t Address)
 {
     if (Address >= Memory.size() - 1)
         throw std::out_of_range(std::to_string(Address));
@@ -306,7 +306,7 @@ uint8_t CPU::MapKey(char Input) noexcept
     }
 }
 
-sf::Keyboard::Key ReverseMap(uint8_t key)
+sf::Keyboard::Key ReverseMap(std::uint8_t key)
 {
     switch (key)
     {
@@ -541,7 +541,7 @@ void CPU::add_y() noexcept
     * lowest 8 bits of the result are kept, and stored in Vx.
     */
 
-    const uint_fast16_t Result = V[IP.x()] + V[IP.y()];
+    const std::uint_fast16_t Result = V[IP.x()] + V[IP.y()];
 
     VF = Result > 0xFF ? 1 : 0;
     V[IP.x()] = Result & 0xFF;
@@ -558,7 +558,7 @@ void CPU::sub_y() noexcept
     */
 
     // In case one of the operands is VF
-    const uint_fast16_t result = V[IP.x()] - V[IP.y()];
+    const std::uint_fast16_t result = V[IP.x()] - V[IP.y()];
 
     VF = result > 0xff ? 0 : 1;
     V[IP.x()] = result & 0xff;
@@ -576,7 +576,7 @@ void CPU::shr() noexcept
 
     // Make a copy of the data in case it's stored in VF
     // TODO: Implement modern behaviour and load from Vx
-    const uint8_t data = V[IP.y()];
+    const std::uint8_t data = V[IP.y()];
 
     VF = data & 0x01;
     V[IP.x()] = data >> 1;
@@ -594,7 +594,7 @@ void CPU::shl() noexcept
 
     // Make a copy of the data in case it's stored in VF
     // TODO: Implement modern behaviour and load from Vx
-    const uint8_t data = V[IP.y()];
+    const std::uint8_t data = V[IP.y()];
 
     VF = (data & 0x80) >> 7;
     V[IP.x()] = data << 1;
@@ -611,7 +611,7 @@ void CPU::subn_y() noexcept
     */
 
     // In case one of the operands is VF
-    const uint_fast16_t result = V[IP.y()] - V[IP.x()];
+    const std::uint_fast16_t result = V[IP.y()] - V[IP.x()];
 
     VF = result > 0xff ? 0 : 1;
     V[IP.x()] = result;
@@ -701,7 +701,7 @@ void CPU::drw()
 
     auto address = std::next(Memory.cbegin(), VI);
 
-    std::vector<uint8_t> Sprite;
+    std::vector<std::uint8_t> Sprite;
     std::copy_n(address, IP.n(), std::back_inserter(Sprite));
 
     if (Display)
@@ -784,7 +784,7 @@ void CPU::str_bcd()
     * the ones digit at location I+2.
     */
 
-    const uint8_t value = V[IP.x()];
+    const std::uint8_t value = V[IP.x()];
 
     Memory.at(VI + 0) = value / 100;
     Memory.at(VI + 1) = (value / 10) % 10;
@@ -876,7 +876,7 @@ void CPU::ld_key() noexcept
     * is stored in Vx.
     */
 
-    for (uint8_t i = 0; i < 16; ++i)
+    for (std::uint8_t i = 0; i < 16; ++i)
     {
         auto key = ReverseMap(i);
         if (sf::Keyboard::isKeyPressed(key))
