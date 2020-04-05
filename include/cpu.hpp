@@ -108,8 +108,8 @@ class CPU
 public:
     CPU() = delete;
     CPU(const std::vector<std::uint8_t>& ROM, Frame* Display);
-    bool Step();
-    void Run();
+    bool step();
+    void run();
 
     const std::array<std::uint8_t, 0x1000>& read_memory() const noexcept;
     const std::stack<std::uint16_t>& read_stack() const noexcept;
