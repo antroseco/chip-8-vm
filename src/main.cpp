@@ -14,7 +14,7 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* Data, std::size_t Size
     CPU Processor{ROM, nullptr};
     try
     {
-        for (int i = 0; Processor.Step() && i < 1000; ++i)
+        for (int i = 0; Processor.step() && i < 1000; ++i)
             ;
     }
     catch (std::logic_error)
@@ -23,7 +23,7 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* Data, std::size_t Size
     }
     catch (std::runtime_error)
     {
-        // Stack over/underflow
+        // Stack over/underflow, invalid key
     }
     catch (std::out_of_range)
     {
