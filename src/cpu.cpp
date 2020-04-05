@@ -343,7 +343,7 @@ sf::Keyboard::Key ReverseMap(std::uint8_t key)
     case 0xF:
         return sf::Keyboard::F; //V;
     default:
-        throw std::runtime_error("invalid key");
+        throw std::runtime_error("invalid key " + std::to_string(key));
     }
 }
 
@@ -838,6 +838,8 @@ void CPU::skp_key() noexcept
     * currently in the down position, PC is increased by 2.
     */
 
+#ifndef FUZZING
+
     auto key = ReverseMap(V[IP.x()]);
 
     if (sf::Keyboard::isKeyPressed(key))
@@ -845,6 +847,8 @@ void CPU::skp_key() noexcept
         AdvancePC(2);
         UpdatePC = false;
     }
+
+#endif
 }
 
 void CPU::sknp_key() noexcept
@@ -857,6 +861,8 @@ void CPU::sknp_key() noexcept
     * currently in the up position, PC is increased by 2.
     */
 
+#ifndef FUZZING
+
     auto key = ReverseMap(V[IP.x()]);
 
     if (!sf::Keyboard::isKeyPressed(key))
@@ -864,6 +870,8 @@ void CPU::sknp_key() noexcept
         AdvancePC(2);
         UpdatePC = false;
     }
+
+#endif
 }
 
 void CPU::ld_key() noexcept
@@ -875,6 +883,8 @@ void CPU::ld_key() noexcept
     * All execution stops until a key is pressed, then the value of that key
     * is stored in Vx.
     */
+
+#ifndef FUZZING
 
     for (std::uint8_t i = 0; i < 16; ++i)
     {
@@ -888,4 +898,6 @@ void CPU::ld_key() noexcept
 
     // Execute this instruction again
     UpdatePC = false;
+
+#endif
 }
