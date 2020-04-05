@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <arpa/inet.h>
+#include <array>
 #include <cassert>
 #include <stdexcept>
 
@@ -27,7 +28,7 @@ void Instruction::read(const std::uint8_t* address)
     raw = htons(word);
 }
 
-uint_fast16_t Instruction::opcode() const
+std::uint_fast16_t Instruction::opcode() const
 {
     // 00E0 or 00EE
     if (raw == 0x00E0)
@@ -36,7 +37,7 @@ uint_fast16_t Instruction::opcode() const
         return 0x00EE;
 
     // First nibble
-    uint_fast16_t value = raw & 0xF000;
+    std::uint_fast16_t value = raw & 0xF000;
 
     switch (value >> 12)
     {
@@ -84,27 +85,27 @@ uint_fast16_t Instruction::opcode() const
     throw std::invalid_argument(std::to_string(raw));
 }
 
-uint_fast8_t Instruction::x() const noexcept
+std::uint_fast8_t Instruction::x() const noexcept
 {
     return (raw & 0x0F00) >> 8;
 }
 
-uint_fast8_t Instruction::y() const noexcept
+std::uint_fast8_t Instruction::y() const noexcept
 {
     return (raw & 0x00F0) >> 4;
 }
 
-uint_fast8_t Instruction::n() const noexcept
+std::uint_fast8_t Instruction::n() const noexcept
 {
     return (raw & 0x000F);
 }
 
-uint_fast8_t Instruction::kk() const noexcept
+std::uint_fast8_t Instruction::kk() const noexcept
 {
     return (raw & 0x00FF);
 }
 
-uint_fast16_t Instruction::nnn() const noexcept
+std::uint_fast16_t Instruction::nnn() const noexcept
 {
     return (raw & 0x0FFF);
 }

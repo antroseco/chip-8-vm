@@ -1,8 +1,8 @@
 #pragma once
 
+#include "graphics.hpp"
 #include "instruction.hpp"
 #include "timer.hpp"
-#include "graphics.hpp"
 
 #include <array>
 #include <random>
@@ -37,29 +37,29 @@ http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
 
 class CPU
 {
-    std::array<uint8_t, 0x1000> Memory = {0}; // 4096 bytes of RAM
-    std::stack<uint16_t> Stack;               // Stack, up to 16 16-bit addresses
+    std::array<std::uint8_t, 0x1000> Memory = {0}; // 4096 bytes of RAM
+    std::stack<std::uint16_t> Stack;               // Stack, up to 16 16-bit addresses
 
-    std::array<uint8_t, 16> V = {0}; // 16 8-bit data registers (V0, V1, ..., VF)
-    uint8_t& VF = V.back();          // Flag register (equivalent to V[0xF])
-    uint16_t VI = 0;                 // 16-bit address register
-    uint16_t PC = 0x200;             // Program Counter
-    Instruction IP;                  // Instruction Pointer
+    std::array<std::uint8_t, 16> V = {0}; // 16 8-bit data registers (V0, V1, ..., VF)
+    std::uint8_t& VF = V.back();          // Flag register (equivalent to V[0xF])
+    std::uint16_t VI = 0;                 // 16-bit address register
+    std::uint16_t PC = 0x200;             // Program Counter
+    Instruction IP;                       // Instruction Pointer
 
     Timer DT; // Delay Timer
 
     Frame* const Display;
 
-    std::random_device Generator;                        // Random number generator
-    std::uniform_int_distribution<uint8_t> Distribution; // Random number distribution
+    std::random_device Generator;                             // Random number generator
+    std::uniform_int_distribution<std::uint8_t> Distribution; // Random number distribution
 
     bool UpdatePC = true;
 
     bool Execute();
-    void AdvancePC(const uint_fast16_t Instructions);
-    void SetPC(const uint16_t Address);
+    void AdvancePC(const std::uint_fast16_t Instructions);
+    void SetPC(const std::uint16_t Address);
 
-    static uint8_t MapKey(char Input) noexcept; // TODO: test
+    static std::uint8_t MapKey(char Input) noexcept; // TODO: test
 
     // Instruction set
     bool jp();
@@ -107,13 +107,13 @@ class CPU
 
 public:
     CPU() = delete;
-    CPU(const std::vector<uint8_t>& ROM, Frame* Display);
+    CPU(const std::vector<std::uint8_t>& ROM, Frame* Display);
     bool Step();
     void Run();
 
-    const std::array<uint8_t, 0x1000>& read_memory() const noexcept;
-    const std::stack<uint16_t>& read_stack() const noexcept;
-    const std::array<uint8_t, 16>& read_registers() const noexcept;
-    uint16_t read_vi() const noexcept;
-    uint16_t read_pc() const noexcept;
+    const std::array<std::uint8_t, 0x1000>& read_memory() const noexcept;
+    const std::stack<std::uint16_t>& read_stack() const noexcept;
+    const std::array<std::uint8_t, 16>& read_registers() const noexcept;
+    std::uint16_t read_vi() const noexcept;
+    std::uint16_t read_pc() const noexcept;
 };
