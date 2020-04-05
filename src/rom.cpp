@@ -1,6 +1,5 @@
 #include "rom.hpp"
 
-#include <arpa/inet.h>
 #include <fstream>
 
 std::vector<std::uint8_t> LoadFile(const std::string& Path)
