@@ -39,7 +39,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
         REQUIRE(cpu.read_pc() == 0x200);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
 
         REQUIRE(cpu.read_pc() == i);
     }
@@ -52,7 +52,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
         CPU cpu(make_rom(instructions), nullptr);
 
-        REQUIRE_THROWS_AS(cpu.Step(), std::out_of_range);
+        REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
 
     SECTION("Jumping to the current instruction doesn't update the PC")
@@ -65,7 +65,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
         REQUIRE(cpu.read_pc() == 0x200);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
 
         REQUIRE(cpu.read_pc() == 0x200);
     }
@@ -88,10 +88,10 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
         REQUIRE(cpu.read_pc() == 0x200);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_registers()[0] == j);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_pc() == i + j);
     }
 
@@ -108,8 +108,8 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
         CPU cpu(make_rom(instructions), nullptr);
 
-        REQUIRE_NOTHROW(cpu.Step());
-        REQUIRE_THROWS_AS(cpu.Step(), std::out_of_range);
+        REQUIRE_NOTHROW(cpu.step());
+        REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
 
     SECTION("Jumping to the current instruction doesn't update the PC")
@@ -121,11 +121,11 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
         CPU cpu(make_rom(instructions), nullptr);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_registers()[0] == 0xff);
         REQUIRE(cpu.read_pc() == 0x202);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_pc() == 0x202);
     }
 }
@@ -145,14 +145,14 @@ TEST_CASE("call (2nnn)", "[cpu]")
 
     for (int i = 0; i < 16; ++i)
     {
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_pc() == (0x200 | (i * 2 + 2)));
         REQUIRE(cpu.read_stack().top() == (0x200 | (i * 2)));
     }
 
     SECTION("Stack can only contain 16 values", "[cpu]")
     {
-        REQUIRE_THROWS_AS(cpu.Step(), std::runtime_error);
+        REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
     }
 }
 
@@ -168,11 +168,11 @@ TEST_CASE("ret (00EE)", "[cpu]")
         CPU cpu(make_rom(instructions), nullptr);
 
         REQUIRE(cpu.read_pc() == 0x200);
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_pc() == 0x202);
         REQUIRE(cpu.read_stack().top() == 0x200);
 
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
         // PC should be equal to the value on the stack + 2
         REQUIRE(cpu.read_pc() == 0x202);
         REQUIRE(cpu.read_stack().empty());
@@ -187,7 +187,7 @@ TEST_CASE("ret (00EE)", "[cpu]")
         CPU cpu(make_rom(instructions), nullptr);
 
         REQUIRE(cpu.read_stack().empty());
-        REQUIRE_THROWS_AS(cpu.Step(), std::runtime_error);
+        REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
     }
 }
 
@@ -206,18 +206,18 @@ TEST_CASE("se_x_kk (3xkk)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
     REQUIRE(cpu.read_registers()[vx] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x206);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x208);
     REQUIRE(cpu.read_registers()[vx] != kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x20A);
 }
 
@@ -238,22 +238,22 @@ TEST_CASE("se_x_y (5xy0)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
     REQUIRE(cpu.read_registers()[vx] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x204);
     REQUIRE(cpu.read_registers()[vy] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x208);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x20A);
     REQUIRE(cpu.read_registers()[vy] != kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vx != vy)
         REQUIRE(cpu.read_pc() == 0x20C);
     else
@@ -274,18 +274,18 @@ TEST_CASE("sne_x_kk (4xkk)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
     REQUIRE(cpu.read_registers()[vx] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x204);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x206);
     REQUIRE(cpu.read_registers()[vx] != kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x20A);
 }
 
@@ -305,22 +305,22 @@ TEST_CASE("sne_x_y (9xy0)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
     REQUIRE(cpu.read_registers()[vx] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x204);
     REQUIRE(cpu.read_registers()[vy] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x206);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x208);
     REQUIRE(cpu.read_registers()[vy] != kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vx != vy)
         REQUIRE(cpu.read_pc() == 0x20C);
     else
@@ -338,7 +338,7 @@ TEST_CASE("ld_kk (6xkk)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
 }
 
@@ -355,10 +355,10 @@ TEST_CASE("ld_y (8xy0)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
 }
 
@@ -372,7 +372,7 @@ TEST_CASE("ld_addr (Annn)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_vi() == address);
 }
 
@@ -389,10 +389,10 @@ TEST_CASE("add_kk (7xkk)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == ((kk1 + kk2) & 0xFF));
 }
 
@@ -409,10 +409,10 @@ TEST_CASE("shr (8xy6)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vy != vx && vy != 0xf)
         REQUIRE(cpu.read_registers()[vy] == kk);
     REQUIRE(cpu.read_registers()[vx] == (kk >> 1));
@@ -436,10 +436,10 @@ TEST_CASE("shl (8xyE)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vy != vx && vy != 0xf)
         REQUIRE(cpu.read_registers()[vy] == kk);
     REQUIRE(cpu.read_registers()[vx] == result);
@@ -462,13 +462,13 @@ TEST_CASE("or_y (8xy1)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
     if (vx != vy)
         REQUIRE(cpu.read_registers()[vx] == (kk1 | kk2));
@@ -489,13 +489,13 @@ TEST_CASE("and_y (8xy2)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
     if (vx != vy)
         REQUIRE(cpu.read_registers()[vx] == (kk1 & kk2));
@@ -516,13 +516,13 @@ TEST_CASE("xor_y (8xy3)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vx == vy)
     {
         REQUIRE(cpu.read_registers()[vx] == 0);
@@ -551,13 +551,13 @@ TEST_CASE("add_y (8xy4)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vy != vx && vy != 0xf)
         REQUIRE(cpu.read_registers()[vy] == kk2);
     REQUIRE(cpu.read_registers()[vx] == (sum & 0xff));
@@ -582,13 +582,13 @@ TEST_CASE("sub_y (8xy5)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vy != vx && vy != 0xf)
         REQUIRE(cpu.read_registers()[vy] == kk2);
     REQUIRE(cpu.read_registers()[vx] == (difference & 0xff));
@@ -613,13 +613,13 @@ TEST_CASE("subn_y (8xy7)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk2);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     if (vy != vx && vy != 0xf)
         REQUIRE(cpu.read_registers()[vy] == kk2);
     REQUIRE(cpu.read_registers()[vx] == (difference & 0xff));
@@ -641,13 +641,13 @@ TEST_CASE("add_i (Fx1E)", "[cpu]")
 
     CPU cpu(make_rom(instructions), nullptr);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_vi() == nnn);
 
-    REQUIRE_NOTHROW(cpu.Step());
+    REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_vi() == (nnn + kk));
 }
 
@@ -662,7 +662,7 @@ TEST_CASE("rnd (Cxkk)", "[cpu]")
     CPU cpu(make_rom(instructions), nullptr);
 
     for (int i = 0; i < 16; ++i)
-        REQUIRE_NOTHROW(cpu.Step());
+        REQUIRE_NOTHROW(cpu.step());
 
     const auto registers = cpu.read_registers();
 

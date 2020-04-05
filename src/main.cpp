@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 
             // TODO: Untie CPU clockspeed from framerate
             for (int i = 0; i < 9 && not_done; ++i)
-                not_done = cpu.Step();
+                not_done = cpu.step();
 
             frame.render(window, force_redraw);
             window.display();

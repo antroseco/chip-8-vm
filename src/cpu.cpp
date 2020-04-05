@@ -38,7 +38,7 @@ CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display) : Display(Display
     IP.read(program_address);
 }
 
-bool CPU::Step()
+bool CPU::step()
 {
     const bool not_finished = Execute();
 
@@ -50,7 +50,7 @@ bool CPU::Step()
     return not_finished;
 }
 
-void CPU::Run()
+void CPU::run()
 {
     using namespace std::chrono;
 
@@ -86,7 +86,7 @@ void CPU::Run()
         {
             budget -= instruction_cost;
 
-            if (!Step())
+            if (!step())
                 return;
 
             timepoints.emplace_front(clock_type::now());
