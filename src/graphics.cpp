@@ -1,11 +1,14 @@
 #include "graphics.hpp"
 
-#include <bitset>
-#include <iostream>
+#include <cstdint>
+#include <limits>
 
-[[nodiscard]] static constexpr std::uint64_t ror(std::uint64_t x, std::size_t n)
+[[nodiscard]] static constexpr std::uint64_t ror(std::uint64_t x, std::size_t s) noexcept
 {
-    return (x >> n) | (x << (-n & (64 * 8 - 1)));
+    constexpr auto digits = std::numeric_limits<std::uint64_t>::digits;
+
+    const std::size_t n = s % digits;
+    return (x >> n) | (x << ((digits - n) % digits));
 }
 
 bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y) noexcept
@@ -62,7 +65,8 @@ void Frame::render(sf::RenderTarget& target, bool force = false)
 
         for (std::size_t j = 0; j < Columns; ++j)
         {
-            if (line & (1u << j))
+            // unsigned long long is guaranteed to be at least 64 bits
+            if (line & (1ull << j))
             {
                 float x = 63 - j;
 
