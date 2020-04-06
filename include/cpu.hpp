@@ -9,6 +9,7 @@
 #include <random>
 #include <stack>
 #include <vector>
+#include <future>
 
 /*
 http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
@@ -112,7 +113,7 @@ public:
     CPU() = delete;
     CPU(const std::vector<std::uint8_t>& ROM, Frame* Display = nullptr, Keyboard* Input = nullptr);
     bool step();
-    void run();
+    void run(const std::future<void>& stop_token);
 
     const std::array<std::uint8_t, 0x1000>& read_memory() const noexcept;
     const std::stack<std::uint16_t>& read_stack() const noexcept;

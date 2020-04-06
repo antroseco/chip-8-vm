@@ -4,7 +4,9 @@
 
 #include <SFML/Window.hpp>
 
+#include <future>
 #include <iostream>
+#include <thread>
 
 #ifdef FUZZING
 
@@ -56,8 +58,6 @@ int main(int argc, char* argv[])
 
     try
     {
-        bool not_done = true;
-
         const sf::VideoMode resolution{Frame::Columns * 10, Frame::Lines * 10};
         sf::RenderWindow window(resolution, "CHIP-8 Virtual Machine");
 
@@ -69,7 +69,10 @@ int main(int argc, char* argv[])
 
         Frame frame;
         Keyboard keyboard{window};
-        CPU cpu(ROM, &frame, &keyboard);
+        CPU cpu{ROM, &frame, &keyboard};
+
+        std::promise<void> stop_token;
+        std::thread cpu_thread{&CPU::run, &cpu, stop_token.get_future()};
 
         sf::Clock clock;
         int frame_count = 0;
@@ -82,10 +85,13 @@ int main(int argc, char* argv[])
             sf::Event event;
             while (window.pollEvent(event))
             {
-                // Request for closing the window
                 if (event.type == sf::Event::Closed)
                 {
                     window.close();
+
+                    stop_token.set_value();
+                    cpu_thread.join();
+
                     return EXIT_SUCCESS;
                 }
                 else if (event.type == sf::Event::Resized)
@@ -103,10 +109,6 @@ int main(int argc, char* argv[])
 
                 // TODO: Process more event types
             }
-
-            // TODO: Untie CPU clockspeed from framerate
-            for (int i = 0; i < 9 && not_done; ++i)
-                not_done = cpu.step();
 
             frame.render(window, force_redraw);
             window.display();
