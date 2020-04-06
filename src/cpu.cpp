@@ -1,13 +1,10 @@
 #include "cpu.hpp"
 
 #include <algorithm>
-#include <cctype>
 #include <chrono>
 #include <deque>
 #include <string>
 #include <thread>
-
-#include <SFML/Window.hpp>
 
 constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
@@ -28,7 +25,7 @@ constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display) : Display(Display)
+CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display, Keyboard* Input) : Display(Display), Input(Input)
 {
     const auto program_address = std::next(Memory.begin(), 0x200);
 
@@ -261,90 +258,6 @@ void CPU::SetPC(const std::uint16_t Address)
 
     PC = Address;
     IP.read(std::next(Memory.data(), PC));
-}
-
-uint8_t CPU::MapKey(char Input) noexcept
-{
-    // TODO: Consider removing
-    // std::toupper only accepts unsigned chars, but it's probably not an issue
-    switch (std::toupper(Input))
-    {
-    case '1':
-        return 0x1;
-    case '2':
-        return 0x2;
-    case '3':
-        return 0x3;
-    case '4':
-        return 0xC;
-    case 'Q':
-        return 0x4;
-    case 'W':
-        return 0x5;
-    case 'E':
-        return 0x6;
-    case 'R':
-        return 0xD;
-    case 'A':
-        return 0x7;
-    case 'S':
-        return 0x8;
-    case 'D':
-        return 0x9;
-    case 'F':
-        return 0xE;
-    case 'Z':
-        return 0xA;
-    case 'X':
-        return 0x0;
-    case 'C':
-        return 0xB;
-    case 'V':
-        return 0xF;
-    default:
-        return 0xFF;
-    }
-}
-
-sf::Keyboard::Key ReverseMap(std::uint8_t key)
-{
-    switch (key)
-    {
-    case 0x0:
-        return sf::Keyboard::Numpad0; //X;
-    case 0x1:
-        return sf::Keyboard::Numpad1;
-    case 0x2:
-        return sf::Keyboard::Numpad2;
-    case 0x3:
-        return sf::Keyboard::Numpad3;
-    case 0x4:
-        return sf::Keyboard::Numpad4; //sf::Keyboard::Q;
-    case 0x5:
-        return sf::Keyboard::Numpad5; //sf::Keyboard::W;
-    case 0x6:
-        return sf::Keyboard::Numpad6; //sf::Keyboard::E;
-    case 0x7:
-        return sf::Keyboard::Numpad7; //sf::Keyboard::A;
-    case 0x8:
-        return sf::Keyboard::Numpad8; //sf::Keyboard::S;
-    case 0x9:
-        return sf::Keyboard::Numpad9; //sf::Keyboard::D;
-    case 0xA:
-        return sf::Keyboard::A; //Z;
-    case 0xB:
-        return sf::Keyboard::B; //C;
-    case 0xC:
-        return sf::Keyboard::C; //sf::Keyboard::Num4;
-    case 0xD:
-        return sf::Keyboard::D; //sf::Keyboard::R;
-    case 0xE:
-        return sf::Keyboard::E; //F;
-    case 0xF:
-        return sf::Keyboard::F; //V;
-    default:
-        throw std::runtime_error("invalid key " + std::to_string(key));
-    }
 }
 
 bool CPU::jp()
@@ -838,17 +751,16 @@ void CPU::skp_key() noexcept
     * currently in the down position, PC is increased by 2.
     */
 
-#ifndef FUZZING
+    if (!Input)
+        return;
 
-    auto key = ReverseMap(V[IP.x()]);
+    const auto key = V[IP.x()];
 
-    if (sf::Keyboard::isKeyPressed(key))
+    if (Input->query_key(key))
     {
         AdvancePC(2);
         UpdatePC = false;
     }
-
-#endif
 }
 
 void CPU::sknp_key() noexcept
@@ -861,17 +773,16 @@ void CPU::sknp_key() noexcept
     * currently in the up position, PC is increased by 2.
     */
 
-#ifndef FUZZING
+    if (!Input)
+        return;
 
-    auto key = ReverseMap(V[IP.x()]);
+    const auto key = V[IP.x()];
 
-    if (!sf::Keyboard::isKeyPressed(key))
+    if (!Input->query_key(key))
     {
         AdvancePC(2);
         UpdatePC = false;
     }
-
-#endif
 }
 
 void CPU::ld_key() noexcept
@@ -884,20 +795,14 @@ void CPU::ld_key() noexcept
     * is stored in Vx.
     */
 
-#ifndef FUZZING
+    if (!Input)
+        return;
 
-    for (std::uint8_t i = 0; i < 16; ++i)
-    {
-        auto key = ReverseMap(i);
-        if (sf::Keyboard::isKeyPressed(key))
-        {
-            V[IP.x()] = i;
-            return;
-        }
-    }
+    const std::optional<int> key = Input->query_any();
 
-    // Execute this instruction again
-    UpdatePC = false;
-
-#endif
+    if (key.has_value())
+        V[IP.x()] = key.value();
+    else
+        // Execute this instruction again
+        UpdatePC = false;
 }

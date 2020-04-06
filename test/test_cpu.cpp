@@ -54,7 +54,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
             b_or(0x1000, i) // jp (jump to i)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE(cpu.read_pc() == 0x200);
 
@@ -69,7 +69,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
             0x1fff // jp (jump to 0xfff
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
@@ -80,7 +80,7 @@ TEST_CASE("jp (1nnn)", "[cpu]")
             0x1200 // jp (jump to 0x200)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE(cpu.read_pc() == 0x200);
 
@@ -103,7 +103,7 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
             b_or(0xB000, i)  // jp_v0 (jump to i + V0)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE(cpu.read_pc() == 0x200);
 
@@ -125,7 +125,7 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
             b_or(0xB000, i)  // jp_v0 (jump to i + V0)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE_NOTHROW(cpu.step());
         REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
@@ -138,7 +138,7 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
             0xB103  // jp_v0 (jump to 0x103 + V0)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_registers()[0] == 0xff);
@@ -158,7 +158,7 @@ TEST_CASE("call (2nnn)", "[cpu]")
     // Overflow the stack
     instructions.back() = 0x2000;
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE(cpu.read_pc() == 0x200);
 
@@ -184,7 +184,7 @@ TEST_CASE("ret (00EE)", "[cpu]")
             0x00EE  // ret (jump back to 0x200)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE(cpu.read_pc() == 0x200);
         REQUIRE_NOTHROW(cpu.step());
@@ -203,7 +203,7 @@ TEST_CASE("ret (00EE)", "[cpu]")
             0x00EE // ret (empty stack; should throw)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
         REQUIRE(cpu.read_stack().empty());
         REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
@@ -223,7 +223,7 @@ TEST_CASE("se_x_kk (3xkk)", "[cpu]")
         b_or(0x3000, vx << 8, kk)      // se_x_kk (should not skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -255,7 +255,7 @@ TEST_CASE("se_x_y (5xy0)", "[cpu]")
         b_or(0x5000, vx << 8, vy << 4)  // se_x_y (should not skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -291,7 +291,7 @@ TEST_CASE("sne_x_kk (4xkk)", "[cpu]")
         b_or(0x4000, vx << 8, kk)      // sne_x_kk (skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -322,7 +322,7 @@ TEST_CASE("sne_x_y (9xy0)", "[cpu]")
         b_or(0x9000, vx << 8, vy << 4)  // sne_x_y (skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -355,7 +355,7 @@ TEST_CASE("ld_kk (6xkk)", "[cpu]")
         b_or(0x6000, vx << 8, kk) // ld_kk (loads kk into register vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
@@ -372,7 +372,7 @@ TEST_CASE("ld_y (8xy0)", "[cpu]")
         b_or(0x8000, vx << 8, vy << 4) // ld_y (loads vy into vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
@@ -389,7 +389,7 @@ TEST_CASE("ld_addr (Annn)", "[cpu]")
         b_or(0xA000, address) // ld_addr (loads address into VI)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_vi() == address);
@@ -406,7 +406,7 @@ TEST_CASE("add_kk (7xkk)", "[cpu]")
         b_or(0x7000, vx << 8, kk2)  // add_kk (adds kk2 to vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -426,7 +426,7 @@ TEST_CASE("shr (8xy6)", "[cpu]")
         b_or(0x8006, vx << 8, vy << 4) // shr (shifts vy and stores the result in vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
@@ -453,7 +453,7 @@ TEST_CASE("shl (8xyE)", "[cpu]")
         b_or(0x800E, vx << 8, vy << 4) // shl (shifts vy and stores the result in vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
@@ -479,7 +479,7 @@ TEST_CASE("or_y (8xy1)", "[cpu]")
         b_or(0x8001, vx << 8, vy << 4) // or_y (vx = vx, vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -506,7 +506,7 @@ TEST_CASE("and_y (8xy2)", "[cpu]")
         b_or(0x8002, vx << 8, vy << 4) // and_y (vx = vx & vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -533,7 +533,7 @@ TEST_CASE("xor_y (8xy3)", "[cpu]")
         b_or(0x8003, vx << 8, vy << 4) // xor_y (vx = vx ^ vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -568,7 +568,7 @@ TEST_CASE("add_y (8xy4)", "[cpu]")
         b_or(0x8004, vx << 8, vy << 4) // add_y (vx = vx + vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -599,7 +599,7 @@ TEST_CASE("sub_y (8xy5)", "[cpu]")
         b_or(0x8005, vx << 8, vy << 4) // sub_y (vx = vx - vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -630,7 +630,7 @@ TEST_CASE("subn_y (8xy7)", "[cpu]")
         b_or(0x8007, vx << 8, vy << 4) // subn_y (vx = vy - vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -658,7 +658,7 @@ TEST_CASE("add_i (Fx1E)", "[cpu]")
         b_or(0xF01E, vx << 8)      // add_i (VI = VI + vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
@@ -678,7 +678,7 @@ TEST_CASE("rnd (Cxkk)", "[cpu]")
     for (int i = 0; i < 16; ++i)
         instructions[i] = 0xC000 | (i << 8) | kk; // rnd (store (random byte & kk) to register i)
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()), nullptr);
+    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
 
     for (int i = 0; i < 16; ++i)
         REQUIRE_NOTHROW(cpu.step());
