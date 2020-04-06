@@ -5,6 +5,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <string>
 
 Instruction::Instruction(const std::uint8_t* address)
 {
