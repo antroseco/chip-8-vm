@@ -48,16 +48,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    auto ROM = LoadFile(argv[1]);
-
-    if (!CheckROM(ROM))
-    {
-        std::cout << "Invalid ROM\n";
-        return EXIT_FAILURE;
-    }
-
     try
     {
+        auto ROM = LoadFile(argv[1]);
+
+        if (!CheckROM(ROM))
+        {
+            std::cout << "Invalid ROM\n";
+            return EXIT_FAILURE;
+        }
+
         const sf::VideoMode resolution{Frame::Columns * 10, Frame::Lines * 10};
         sf::RenderWindow window(resolution, "CHIP-8 Virtual Machine");
 
