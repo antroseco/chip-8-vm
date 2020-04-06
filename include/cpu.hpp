@@ -1,15 +1,15 @@
 #pragma once
 
 #include "graphics.hpp"
-#include "instruction.hpp"
 #include "input.hpp"
+#include "instruction.hpp"
 #include "timer.hpp"
 
 #include <array>
+#include <future>
 #include <random>
 #include <stack>
 #include <vector>
-#include <future>
 
 /*
 http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
@@ -62,8 +62,6 @@ class CPU
     bool Execute();
     void AdvancePC(const std::uint_fast16_t Instructions);
     void SetPC(const std::uint16_t Address);
-
-    static std::uint8_t MapKey(char Input) noexcept; // TODO: test
 
     // Instruction set
     bool jp();
