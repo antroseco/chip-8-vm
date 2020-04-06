@@ -11,7 +11,7 @@
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* Data, std::size_t Size)
 {
     std::vector<std::uint8_t> ROM{Data, Data + Size};
-    CPU Processor{ROM, nullptr};
+    CPU Processor{ROM};
     try
     {
         for (int i = 0; Processor.step() && i < 1000; ++i)
@@ -68,7 +68,8 @@ int main(int argc, char* argv[])
         Frame::prepareTarget(window);
 
         Frame frame;
-        CPU cpu(ROM, &frame);
+        Keyboard keyboard{window};
+        CPU cpu(ROM, &frame, &keyboard);
 
         sf::Clock clock;
         int frame_count = 0;
@@ -90,6 +91,14 @@ int main(int argc, char* argv[])
                 else if (event.type == sf::Event::Resized)
                 {
                     force_redraw = true;
+                }
+                else if (event.type == sf::Event::KeyPressed)
+                {
+                    keyboard.register_keypress(event.key, true);
+                }
+                else if (event.type == sf::Event::KeyReleased)
+                {
+                    keyboard.register_keypress(event.key, false);
                 }
 
                 // TODO: Process more event types

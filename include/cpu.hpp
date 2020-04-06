@@ -2,6 +2,7 @@
 
 #include "graphics.hpp"
 #include "instruction.hpp"
+#include "input.hpp"
 #include "timer.hpp"
 
 #include <array>
@@ -50,6 +51,7 @@ class CPU
     Timer DT; // Delay Timer
 
     Frame* const Display;
+    Keyboard* const Input;
 
     std::random_device Generator;                             // Random number generator
     std::uniform_int_distribution<std::uint8_t> Distribution; // Random number distribution
@@ -108,7 +110,7 @@ class CPU
 
 public:
     CPU() = delete;
-    CPU(const std::vector<std::uint8_t>& ROM, Frame* Display);
+    CPU(const std::vector<std::uint8_t>& ROM, Frame* Display = nullptr, Keyboard* Input = nullptr);
     bool step();
     void run();
 
