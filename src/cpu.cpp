@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <chrono>
 #include <deque>
+#include <iostream>
 #include <string>
-#include <thread>
 
 constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
@@ -47,7 +47,7 @@ bool CPU::step()
     return not_finished;
 }
 
-void CPU::run()
+void CPU::run(const std::future<void>& stop_token)
 {
     using namespace std::chrono;
 
@@ -74,7 +74,10 @@ void CPU::run()
         */
 
         const auto start = clock_type::now();
-        std::this_thread::sleep_for(milliseconds{50});
+
+        if (stop_token.wait_for(milliseconds{50}) == std::future_status::ready)
+            return;
+
         const auto end = clock_type::now();
 
         budget += (end - start);

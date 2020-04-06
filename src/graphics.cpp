@@ -17,6 +17,8 @@ bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, s
     x %= Columns;
     y %= Lines;
 
+    std::scoped_lock lock{buffer_mutex};
+
     for (std::size_t i = 0; i < sprite.size() && y + i < Lines; ++i)
     {
         std::uint64_t& line = buffer[y + i];
@@ -28,26 +30,30 @@ bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, s
         line ^= mask;
     }
 
-    updated = true;
+    updated.store(true, std::memory_order_release);
 
     return collision;
 }
 
 void Frame::clear() noexcept
 {
+    std::scoped_lock lock{buffer_mutex};
+
     buffer.fill(0);
-    updated = true;
+    updated.store(true, std::memory_order_release);
 }
 
 void Frame::render(sf::RenderTarget& target, bool force = false)
 {
-    if (!updated && !force)
+    if (!updated.load(std::memory_order_acquire) && !force)
         return;
 
     sf::RectangleShape pixel({1.f, 1.f});
     pixel.setFillColor(sf::Color::White);
 
     target.clear(sf::Color::Black);
+
+    std::scoped_lock lock{buffer_mutex};
 
     for (std::size_t i = 0; i < Lines; ++i)
     {
@@ -66,7 +72,7 @@ void Frame::render(sf::RenderTarget& target, bool force = false)
         }
     }
 
-    updated = false;
+    updated.store(false, std::memory_order_relaxed);
 }
 
 void Frame::prepareTarget(sf::RenderTarget& target)

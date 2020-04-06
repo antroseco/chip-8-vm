@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 
 #include <array>
+#include <atomic>
+#include <mutex>
 #include <vector>
 
 class Frame
@@ -20,5 +22,6 @@ public:
 
 private:
     std::array<std::uint64_t, Lines> buffer{0};
-    bool updated = true;
+    std::atomic_bool updated = true;
+    std::mutex buffer_mutex;
 };
