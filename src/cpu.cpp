@@ -27,12 +27,15 @@ constexpr std::array<std::uint8_t, 80> Font = {
 
 CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display, Keyboard* Input) : Display(Display), Input(Input)
 {
-    const auto program_address = std::next(Memory.begin(), 0x200);
+    constexpr std::size_t max_size = 0x1000 - 0x200;
+
+    const std::size_t size = std::min(ROM.size(), max_size);
+    const auto start_address = std::next(Memory.begin(), 0x200);
 
     std::copy(Font.cbegin(), Font.cend(), Memory.begin());
-    std::copy_n(ROM.cbegin(), std::min(0xDFFul, ROM.size()), program_address);
+    std::copy_n(ROM.cbegin(), size, start_address);
 
-    IP.read(program_address);
+    IP.read(start_address);
 }
 
 bool CPU::step()
