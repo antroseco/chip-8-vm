@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/chip8_vm",
             "args": [
-                "test/ibm_logo.ch8"
+                "rom/ibm_logo.ch8"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
