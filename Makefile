@@ -9,10 +9,10 @@ INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 
 # Compiler options
 CXX := clang++-10
-COMMONFLAGS := -flto -g -O1 -fsanitize=address,undefined
+COMMONFLAGS := -flto -g -O1
 CXXFLAGS := $(INC_FLAGS) $(COMMONFLAGS) -MMD -MP -std=c++17 -Wall -Wextra -pedantic
 LDFLAGS := $(COMMONFLAGS) -lsfml-graphics -lsfml-window -lsfml-system -pthread
-FUZZFLAGS := -fsanitize=fuzzer -DFUZZING
+FUZZFLAGS := -fsanitize=fuzzer,address,undefined -DFUZZING
 
 # Project directories
 BUILD_ROOT := build
