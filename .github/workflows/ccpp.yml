@@ -57,7 +57,7 @@ jobs:
     - name: Build fuzzer
       run: |
         mkdir build
-        cmake -S . -B build/
-        CXX=clang++ cmake --build ./build --config Debug --target fuzz
+        CXX=$(which clang++) cmake -S . -B build/
+        cmake --build ./build --config Debug --target fuzz
     - name: Run fuzzer
       run: ./build/fuzz corpus/ -max_len=4096 -dict=fuzzing_dictionary.txt -timeout=10 -runs=10000000‬
