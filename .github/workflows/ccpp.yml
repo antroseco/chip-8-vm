@@ -7,23 +7,39 @@ on:
     branches: [ master ]
 
 jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2.1.0
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsfml-dev cmake
+    - name: Build executable
+      run: |
+        mkdir build
+        cmake --build ./build --config Debug --target chip8_vm
+
   test:
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.1.0
     - name: Install dependencies
       run: |
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
-        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
         sudo apt-get update
-        sudo apt-get install -y clang-10 lld-10 libsfml-dev
-    - name: make
-      run: make
-    - name: make test
-      run: make test
+        sudo apt-get install -y libsfml-dev cmake
+    - name: Build tests
+      run: |
+        mkdir build
+        cmake --build ./build --config Debug --target run_tests
+    - name: Run tests
+      run: ./build/run_tests
 
   fuzz:
 
@@ -31,12 +47,14 @@ jobs:
     timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.1.0
     - name: Install dependencies
       run: |
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
-        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
         sudo apt-get update
-        sudo apt-get install -y clang-10 lld-10 libsfml-dev
-    - name: make fuzz
-      run: make fuzz
+        sudo apt-get install -y clang libsfml-dev cmake
+    - name: Build fuzzer
+      run: |
+        mkdir build
+        CXX=clang++ cmake --build ./build --config Debug --target fuzz
+    - name: Run fuzzer
+      run: ./build/fuzz corpus/ -max_len=4096 -dict=fuzzing_dictionary.txt -timeout=10 -runs=10000000‬

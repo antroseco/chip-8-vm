@@ -8,38 +8,6 @@
 #include <iostream>
 #include <thread>
 
-#ifdef FUZZING
-
-extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* Data, std::size_t Size)
-{
-    std::vector<std::uint8_t> ROM{Data, Data + Size};
-    CPU Processor{ROM};
-    try
-    {
-        for (int i = 0; Processor.step() && i < 1000; ++i)
-            ;
-    }
-    catch (std::logic_error)
-    {
-        // Invalid opcodes
-    }
-    catch (std::runtime_error)
-    {
-        // Stack over/underflow, invalid key
-    }
-    catch (std::out_of_range)
-    {
-        // Invalid memory address
-    }
-    catch (std::invalid_argument)
-    {
-        // Invalid opcode
-    }
-    return 0; // Non-zero return values are reserved for future use.
-}
-
-#else
-
 int main(int argc, char* argv[])
 {
     if (argc != 2)
@@ -135,5 +103,3 @@ int main(int argc, char* argv[])
 
     return EXIT_SUCCESS;
 }
-
-#endif
