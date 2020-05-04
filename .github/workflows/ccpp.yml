@@ -20,9 +20,8 @@ jobs:
         sudo apt-get install -y libsfml-dev cmake
     - name: Build executable
       run: |
-        mkdir build
-        cmake -S . -B build/
-        cmake --build ./build --config Release --target chip8_vm
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --target chip8_vm
 
   test:
 
@@ -37,9 +36,8 @@ jobs:
         sudo apt-get install -y libsfml-dev cmake
     - name: Build tests
       run: |
-        mkdir build
-        cmake -S . -B build/
-        cmake --build ./build --config Release --target run_tests
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --target run_tests
     - name: Run tests
       run: ./build/run_tests
 
@@ -56,8 +54,7 @@ jobs:
         sudo apt-get install -y clang libsfml-dev cmake
     - name: Build fuzzer
       run: |
-        mkdir build
-        CXX=$(which clang++) cmake -S . -B build/
-        cmake --build ./build --config RelWithDebInfo --target fuzz
+        CXX=$(which clang++) cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        cmake --build build --target fuzz
     - name: Run fuzzer
       run: ./build/fuzz corpus/ -max_len=4096 -dict=fuzzing_dictionary.txt -timeout=10 -runs=10000000‬
