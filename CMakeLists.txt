@@ -48,6 +48,8 @@ add_executable(fuzz src/fuzzing_main.cpp
                     src/instruction.cpp
                     src/timer.cpp)
 
+target_compile_definitions(fuzz PRIVATE FUZZING)
+
 # Multithreading support
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
