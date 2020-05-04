@@ -22,13 +22,13 @@ struct Instruction
     * oxyn (2 operands, 1 constant)
     */
 
-    Instruction() = default;
+    std::uint16_t raw;
+
+    constexpr Instruction() : raw(0){};
     constexpr explicit Instruction(std::uint16_t instruction) : raw(instruction){};
     explicit Instruction(const std::uint8_t* address);
 
     void read(const std::uint8_t* address);
-
-    std::uint16_t raw;
 
     std::uint_fast16_t opcode() const;
     std::uint_fast8_t x() const noexcept;
