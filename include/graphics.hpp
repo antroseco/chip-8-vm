@@ -14,8 +14,8 @@ public:
     static constexpr std::size_t Columns = 0x40;
 
     // Draws a sprite, with each byte on a separate line
-    [[nodiscard]] bool drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y) noexcept;
-    void clear() noexcept;
+    [[nodiscard]] bool drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y);
+    void clear();
     void render(sf::RenderTarget& target, bool force);
 
     static void prepareTarget(sf::RenderTarget& target);

@@ -11,7 +11,7 @@
     return (x >> n) | (x << ((digits - n) % digits));
 }
 
-bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y) noexcept
+bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y)
 {
     bool collision = false;
 
@@ -38,7 +38,7 @@ bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, s
     return collision;
 }
 
-void Frame::clear() noexcept
+void Frame::clear()
 {
     std::scoped_lock lock{buffer_mutex};
 
