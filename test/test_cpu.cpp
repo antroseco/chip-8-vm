@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "cpu.hpp"
 
+#include <algorithm>
 #include <arpa/inet.h>
 #include <array>
 #include <vector>
@@ -675,19 +676,41 @@ TEST_CASE("rnd (Cxkk)", "[cpu]")
     auto kk = GENERATE(take(100, random(0x01, 0xff)));
 
     std::array<std::uint16_t, 16> instructions;
-    for (int i = 0; i < 16; ++i)
+    for (std::size_t i = 0; i < 16; ++i)
         instructions[i] = 0xC000 | (i << 8) | kk; // rnd (store (random byte & kk) to register i)
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    const std::vector<std::uint8_t> rom = make_rom(instructions.cbegin(), instructions.cend());
 
-    for (int i = 0; i < 16; ++i)
-        REQUIRE_NOTHROW(cpu.step());
+    SECTION("Generates a random sequence")
+    {
+        CPU cpu{rom};
 
-    const auto registers = cpu.read_registers();
+        for (int i = 0; i < 16; ++i)
+            REQUIRE_NOTHROW(cpu.step());
 
-    REQUIRE(std::all_of(registers.cbegin(), registers.cend(),
-                        [kk](std::uint8_t x) { return (x & kk) == x; }));
+        const auto& registers = cpu.read_registers();
 
-    REQUIRE(std::any_of(registers.cbegin(), registers.cend(),
-                        [&registers](std::uint8_t x) { return x != registers.front(); }));
+        REQUIRE(std::all_of(registers.cbegin(), registers.cend(),
+                            [kk](std::uint8_t x) { return (x & kk) == x; }));
+
+        REQUIRE(std::any_of(registers.cbegin(), registers.cend(),
+                            [&registers](std::uint8_t x) { return x != registers.front(); }));
+    }
+
+    SECTION("Two different CPUs produce different sequences")
+    {
+        CPU cpu1{rom};
+        CPU cpu2{rom};
+
+        for (int i = 0; i < 16; ++i)
+        {
+            REQUIRE_NOTHROW(cpu1.step());
+            REQUIRE_NOTHROW(cpu2.step());
+        }
+
+        const auto& registers1 = cpu1.read_registers();
+        const auto& registers2 = cpu2.read_registers();
+
+        REQUIRE_FALSE(std::equal(registers1.cbegin(), registers1.cend(), registers2.cbegin()));
+    }
 }
