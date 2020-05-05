@@ -60,7 +60,7 @@ void Frame::render(sf::RenderTarget& target, bool force = false)
 
     for (std::size_t i = 0; i < Lines; ++i)
     {
-        float y = i;
+        const float y = i;
         std::uint64_t line = buffer[i];
 
         for (std::size_t j = 0; j < Columns; ++j)
@@ -68,7 +68,7 @@ void Frame::render(sf::RenderTarget& target, bool force = false)
             // unsigned long long is guaranteed to be at least 64 bits
             if (line & (1ull << j))
             {
-                float x = 63 - j;
+                const float x = 63 - j;
 
                 pixel.setPosition({x, y});
                 target.draw(pixel);
@@ -88,6 +88,6 @@ void Frame::prepareTarget(sf::RenderTarget& target)
     *  https://www.sfml-dev.org/documentation/2.5.1/classsf_1_1RenderTarget.php#a063db6dd0a14913504af30e50cb6d946
     */
 
-    sf::View view{sf::FloatRect{0.f, 0.f, Columns, Lines}};
+    const sf::View view{sf::FloatRect{0.f, 0.f, Columns, Lines}};
     target.setView(view);
 }
