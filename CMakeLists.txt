@@ -63,5 +63,4 @@ target_link_options(fuzz PRIVATE -fsanitize=fuzzer,address,undefined)
 set_property(TARGET fuzz PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
 
 # Header directories
-include_directories(include)
-target_include_directories(run_tests PRIVATE lib)
+include_directories(include lib)

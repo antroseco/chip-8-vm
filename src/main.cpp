@@ -2,6 +2,7 @@
 #include "graphics.hpp"
 #include "rom.hpp"
 
+#include "CLI11.hpp"
 #include <SFML/Window.hpp>
 
 #include <future>
@@ -10,15 +11,16 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
-    {
-        std::cout << argv[0] << " [file]\n";
-        return EXIT_FAILURE;
-    }
+    CLI::App app{"CHIP-8 interpreter as implemented on the COSMAC VIP"};
+
+    std::string rom_path;
+    app.add_option("rom", rom_path, "ROM to execute")->required()->check(CLI::ExistingFile);
+
+    CLI11_PARSE(app, argc, argv);
 
     try
     {
-        auto ROM = LoadFile(argv[1]);
+        auto ROM = LoadFile(rom_path);
 
         if (!CheckROM(ROM))
         {

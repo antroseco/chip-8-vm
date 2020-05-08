@@ -62,7 +62,8 @@
         "shared_mutex": "cpp",
         "bit": "cpp",
         "cinttypes": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "unordered_set": "cpp"
     },
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }
