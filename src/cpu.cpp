@@ -62,10 +62,11 @@ void CPU::run(const std::future<void>& stop_token)
     constexpr std::size_t target_frequency = 600;
     auto instruction_cost = duration_cast<clock_type::duration>(seconds{1}) / target_frequency;
 
+    clock_type::time_point start = clock_type::now();
     clock_type::duration budget{0};
 
     // Circular buffer used to calculate average clock speed
-    std::deque<clock_type::time_point> timepoints = {clock_type::now()};
+    std::deque<clock_type::time_point> timepoints = {start};
 
     while (true)
     {
@@ -76,14 +77,13 @@ void CPU::run(const std::future<void>& stop_token)
         * is executed. Any budget surplus is carried over to the next cycle.
         */
 
-        const auto start = clock_type::now();
-
         if (stop_token.wait_for(milliseconds{50}) == std::future_status::ready)
             return;
 
-        const auto end = clock_type::now();
+        clock_type::time_point end = clock_type::now();
 
         budget += (end - start);
+        start = std::move(end);
 
         while (budget >= instruction_cost)
         {
