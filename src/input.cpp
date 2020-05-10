@@ -1,6 +1,9 @@
 #include "input.hpp"
 
+#include <SFML/Window.hpp>
+
 #include <algorithm>
+#include <iterator>
 #include <optional>
 
 static std::optional<int> Map(sf::Keyboard::Key key) noexcept

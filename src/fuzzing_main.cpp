@@ -1,6 +1,8 @@
 #include "cpu.hpp"
 
+#include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size)

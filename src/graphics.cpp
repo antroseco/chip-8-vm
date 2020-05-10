@@ -1,5 +1,7 @@
 #include "graphics.hpp"
 
+#include <SFML/Graphics.hpp>
+
 #include <cstdint>
 #include <limits>
 

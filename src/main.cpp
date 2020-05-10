@@ -1,12 +1,18 @@
 #include "cpu.hpp"
 #include "graphics.hpp"
+#include "input.hpp"
 #include "rom.hpp"
 
 #include "CLI11.hpp"
+#include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
+#include <cstdlib>
+#include <exception>
 #include <future>
 #include <iostream>
+#include <string>
 #include <thread>
 
 int main(int argc, char* argv[])

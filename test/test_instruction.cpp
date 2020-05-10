@@ -2,6 +2,7 @@
 #include "instruction.hpp"
 
 #include <array>
+#include <cstdint>
 
 TEST_CASE("Instruction struct can be initialized with an address or value", "[instruction]")
 {

@@ -1,6 +1,8 @@
 #include "rom.hpp"
 
 #include <fstream>
+#include <iterator>
+#include <stdexcept>
 
 std::vector<std::uint8_t> LoadFile(const std::string& Path)
 {

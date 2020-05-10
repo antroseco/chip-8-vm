@@ -1,9 +1,9 @@
 #include "instruction.hpp"
 
 #include <algorithm>
-#include <arpa/inet.h>
 #include <array>
 #include <cassert>
+#include <netinet/in.h>
 #include <stdexcept>
 #include <string>
 

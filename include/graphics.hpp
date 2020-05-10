@@ -1,11 +1,16 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
-
 #include <array>
 #include <atomic>
+#include <cstddef>
+#include <cstdint>
 #include <mutex>
 #include <vector>
+
+namespace sf
+{
+class RenderTarget;
+}
 
 class Frame
 {

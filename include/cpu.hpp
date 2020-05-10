@@ -1,15 +1,17 @@
 #pragma once
 
-#include "graphics.hpp"
-#include "input.hpp"
 #include "instruction.hpp"
 #include "timer.hpp"
 
 #include <array>
+#include <cstdint>
 #include <future>
 #include <random>
 #include <stack>
 #include <vector>
+
+class Frame;
+class Keyboard;
 
 /*
 http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap

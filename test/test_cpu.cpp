@@ -2,8 +2,12 @@
 #include "cpu.hpp"
 
 #include <algorithm>
-#include <arpa/inet.h>
 #include <array>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <netinet/in.h>
+#include <stack>
 #include <vector>
 
 namespace

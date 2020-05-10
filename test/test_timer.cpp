@@ -1,6 +1,8 @@
 #include "catch.hpp"
 #include "timer.hpp"
 
+#include <algorithm>
+#include <chrono>
 #include <thread>
 
 TEST_CASE("Timer value can be set and read", "[timer]")

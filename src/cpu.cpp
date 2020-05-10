@@ -1,10 +1,19 @@
 #include "cpu.hpp"
+#include "graphics.hpp"
+#include "input.hpp"
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <deque>
 #include <iostream>
+#include <iterator>
+#include <optional>
+#include <ratio>
+#include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
