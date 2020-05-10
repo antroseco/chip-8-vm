@@ -13,14 +13,14 @@
 namespace
 {
 
-std::vector<std::uint8_t> make_rom(const std::uint16_t* begin, const std::uint16_t* end)
+std::vector<std::uint8_t> make_rom(const int* begin, std::size_t size)
 {
     std::vector<std::uint8_t> rom;
-    rom.reserve(std::distance(begin, end) * 2);
+    rom.reserve(size * 2);
 
-    for (; begin != end; ++begin)
+    for (auto data = begin; data != begin + size; ++data)
     {
-        const std::uint16_t instruction = htons(*begin);
+        const std::uint16_t instruction = htons(*data & 0xffff);
         const std::uint8_t* const pointer = reinterpret_cast<const std::uint8_t*>(&instruction);
 
         rom.emplace_back(pointer[0]);
@@ -37,17 +37,6 @@ auto range_i(T start, T end)
     return Catch::Generators::range(start, end + 1);
 }
 
-// Prevents integer promotion of result to int
-[[nodiscard]] constexpr inline std::uint16_t b_or(std::uint16_t a, std::uint16_t b)
-{
-    return a | b;
-}
-
-[[nodiscard]] constexpr inline std::uint16_t b_or(std::uint16_t a, std::uint16_t b, std::uint16_t c)
-{
-    return a | b | c;
-}
-
 } // namespace
 
 TEST_CASE("jp (1nnn)", "[cpu]")
@@ -55,11 +44,11 @@ TEST_CASE("jp (1nnn)", "[cpu]")
     SECTION("Normal operation")
     {
         const std::uint16_t i = GENERATE(take(100, random(0x000, 0xffe)));
-        const std::array<std::uint16_t, 1> instructions{
-            b_or(0x1000, i) // jp (jump to i)
+        const std::array<int, 1> instructions{
+            0x1000 | i // jp (jump to i)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE(cpu.read_pc() == 0x200);
 
@@ -70,22 +59,22 @@ TEST_CASE("jp (1nnn)", "[cpu]")
 
     SECTION("Address is the last byte (can't contain a 16 bit instruction)")
     {
-        constexpr std::array<std::uint16_t, 1> instructions{
+        constexpr std::array<int, 1> instructions{
             0x1fff // jp (jump to 0xfff
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
 
     SECTION("Jumping to the current instruction doesn't update the PC")
     {
-        constexpr std::array<std::uint16_t, 1> instructions{
+        constexpr std::array<int, 1> instructions{
             0x1200 // jp (jump to 0x200)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE(cpu.read_pc() == 0x200);
 
@@ -103,12 +92,12 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
         const std::uint16_t i = GENERATE(take(10, random(0x000, 0xf00)));
         const std::uint16_t j = GENERATE(take(10, random(0x00, 0xff)));
 
-        const std::array<std::uint16_t, 2> instructions{
-            b_or(0x6000, j), // ld_kk (load j to V0)
-            b_or(0xB000, i)  // jp_v0 (jump to i + V0)
+        const std::array<int, 2> instructions{
+            0x6000 | j, // ld_kk (load j to V0)
+            0xB000 | i  // jp_v0 (jump to i + V0)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE(cpu.read_pc() == 0x200);
 
@@ -125,12 +114,12 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
         const std::uint16_t i = GENERATE(take(10, random(0xff0, 0xfff)));
         const std::uint16_t j = GENERATE(take(10, random(0x0f, 0xff)));
 
-        const std::array<std::uint16_t, 2> instructions{
-            b_or(0x6000, j), // ld_kk (load j to V0)
-            b_or(0xB000, i)  // jp_v0 (jump to i + V0)
+        const std::array<int, 2> instructions{
+            0x6000 | j, // ld_kk (load j to V0)
+            0xB000 | i  // jp_v0 (jump to i + V0)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE_NOTHROW(cpu.step());
         REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
@@ -138,12 +127,12 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
     SECTION("Jumping to the current instruction doesn't update the PC")
     {
-        constexpr std::array<std::uint16_t, 2> instructions{
+        constexpr std::array<int, 2> instructions{
             0x60ff, // ld_kk (load 0xff to V0)
             0xB103  // jp_v0 (jump to 0x103 + V0)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_registers()[0] == 0xff);
@@ -156,14 +145,14 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
 TEST_CASE("call (2nnn)", "[cpu]")
 {
-    std::array<std::uint16_t, 17> instructions;
-    for (std::uint16_t i = 0; i < 16; ++i)
+    std::array<int, 17> instructions;
+    for (int i = 0; i < 16; ++i)
         instructions[i] = 0x2200 | (i * 2 + 2); // call (push PC to stack and jump to 0x200 + i)
 
     // Overflow the stack
     instructions.back() = 0x2000;
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE(cpu.read_pc() == 0x200);
 
@@ -184,12 +173,12 @@ TEST_CASE("ret (00EE)", "[cpu]")
 {
     SECTION("Normal operation")
     {
-        constexpr std::array<std::uint16_t, 2> instructions{
+        constexpr std::array<int, 2> instructions{
             0x2202, // call (jump to next instruction)
             0x00EE  // ret (jump back to 0x200)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE(cpu.read_pc() == 0x200);
         REQUIRE_NOTHROW(cpu.step());
@@ -204,11 +193,11 @@ TEST_CASE("ret (00EE)", "[cpu]")
 
     SECTION("Called with an empty stack")
     {
-        constexpr std::array<std::uint16_t, 1> instructions{
+        constexpr std::array<int, 1> instructions{
             0x00EE // ret (empty stack; should throw)
         };
 
-        CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
         REQUIRE(cpu.read_stack().empty());
         REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
@@ -220,15 +209,15 @@ TEST_CASE("se_x_kk (3xkk)", "[cpu]")
     auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 5> instructions{
-        b_or(0x6000, vx << 8, kk),     // ld_kk (loads kk to register vx)
-        b_or(0x3000, vx << 8, kk),     // se_x_kk (skip next instruction)
-        0,                             // noop (should be skipped)
-        b_or(0x6000, vx << 8, kk ^ 1), // ld_kk (loads something other than kk)
-        b_or(0x3000, vx << 8, kk)      // se_x_kk (should not skip next instruction)
+    const std::array<int, 5> instructions{
+        0x6000 | vx << 8 | kk,       // ld_kk (loads kk to register vx)
+        0x3000 | vx << 8 | kk,       // se_x_kk (skip next instruction)
+        0,                           // noop (should be skipped)
+        0x6000 | vx << 8 | (kk ^ 1), // ld_kk (loads something other than kk)
+        0x3000 | vx << 8 | kk        // se_x_kk (should not skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -251,16 +240,16 @@ TEST_CASE("se_x_y (5xy0)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 6> instructions{
-        b_or(0x6000, vx << 8, kk),      // ld_kk (loads kk to register vx)
-        b_or(0x6000, vy << 8, kk),      // ld_kk (loads kk to register vy)
-        b_or(0x5000, vx << 8, vy << 4), // se_x_y (skip next instruction)
-        0,                              // noop(should be skipped)
-        b_or(0x6000, vy << 8, kk ^ 1),  // ld_kk (loads something other than kk)
-        b_or(0x5000, vx << 8, vy << 4)  // se_x_y (should not skip next instruction)
+    const std::array<int, 6> instructions{
+        0x6000 | vx << 8 | kk,       // ld_kk (loads kk to register vx)
+        0x6000 | vy << 8 | kk,       // ld_kk (loads kk to register vy)
+        0x5000 | vx << 8 | vy << 4,  // se_x_y (skip next instruction)
+        0,                           // noop(should be skipped)
+        0x6000 | vy << 8 | (kk ^ 1), // ld_kk (loads something other than kk)
+        0x5000 | vx << 8 | vy << 4   // se_x_y (should not skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -289,14 +278,14 @@ TEST_CASE("sne_x_kk (4xkk)", "[cpu]")
     auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 4> instructions{
-        b_or(0x6000, vx << 8, kk),     // ld_kk (loads kk to register vx)
-        b_or(0x4000, vx << 8, kk),     // sne_x_kk (should not skip next instruction)
-        b_or(0x6000, vx << 8, kk ^ 1), // ld_kk (loads something other than kk)
-        b_or(0x4000, vx << 8, kk)      // sne_x_kk (skip next instruction)
+    const std::array<int, 4> instructions{
+        0x6000 | vx << 8 | kk,       // ld_kk (loads kk to register vx)
+        0x4000 | vx << 8 | kk,       // sne_x_kk (should not skip next instruction)
+        0x6000 | vx << 8 | (kk ^ 1), // ld_kk (loads something other than kk)
+        0x4000 | vx << 8 | kk        // sne_x_kk (skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -319,15 +308,15 @@ TEST_CASE("sne_x_y (9xy0)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 5> instructions{
-        b_or(0x6000, vx << 8, kk),      // ld_kk (loads kk to register vx)
-        b_or(0x6000, vy << 8, kk),      // ld_kk (loads kk to register vy)
-        b_or(0x9000, vx << 8, vy << 4), // sne_x_y (should not skip next instruction)
-        b_or(0x6000, vy << 8, kk ^ 1),  // ld_kk (loads something other than kk)
-        b_or(0x9000, vx << 8, vy << 4)  // sne_x_y (skip next instruction)
+    const std::array<int, 5> instructions{
+        0x6000 | vx << 8 | kk,       // ld_kk (loads kk to register vx)
+        0x6000 | vy << 8 | kk,       // ld_kk (loads kk to register vy)
+        0x9000 | vx << 8 | vy << 4,  // sne_x_y (should not skip next instruction)
+        0x6000 | vy << 8 | (kk ^ 1), // ld_kk (loads something other than kk)
+        0x9000 | vx << 8 | vy << 4   // sne_x_y (skip next instruction)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_pc() == 0x202);
@@ -356,11 +345,11 @@ TEST_CASE("ld_kk (6xkk)", "[cpu]")
     auto vx = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 1> instructions{
-        b_or(0x6000, vx << 8, kk) // ld_kk (loads kk into register vx)
+    const std::array<int, 1> instructions{
+        0x6000 | vx << 8 | kk // ld_kk (loads kk into register vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
@@ -372,12 +361,12 @@ TEST_CASE("ld_y (8xy0)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 2> instructions{
-        b_or(0x6000, vy << 8, kk),     // ld_kk (loads kk into register vy)
-        b_or(0x8000, vx << 8, vy << 4) // ld_y (loads vy into vx)
+    const std::array<int, 2> instructions{
+        0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
+        0x8000 | vx << 8 | vy << 4 // ld_y (loads vy into vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
@@ -390,11 +379,11 @@ TEST_CASE("ld_addr (Annn)", "[cpu]")
 {
     auto address = GENERATE(take(100, random(0x000, 0xfff)));
 
-    const std::array<std::uint16_t, 1> instructions{
-        b_or(0xA000, address) // ld_addr (loads address into VI)
+    const std::array<int, 1> instructions{
+        0xA000 | address // ld_addr (loads address into VI)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_vi() == address);
@@ -406,12 +395,12 @@ TEST_CASE("add_kk (7xkk)", "[cpu]")
     auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
     auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 2> instructions{
-        b_or(0x6000, vx << 8, kk1), // ld_kk (loads kk1 into register vx)
-        b_or(0x7000, vx << 8, kk2)  // add_kk (adds kk2 to vx)
+    const std::array<int, 2> instructions{
+        0x6000 | vx << 8 | kk1, // ld_kk (loads kk1 into register vx)
+        0x7000 | vx << 8 | kk2  // add_kk (adds kk2 to vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -426,12 +415,12 @@ TEST_CASE("shr (8xy6)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 2> instructions{
-        b_or(0x6000, vy << 8, kk),     // ld_kk (loads kk into register vy)
-        b_or(0x8006, vx << 8, vy << 4) // shr (shifts vy and stores the result in vx)
+    const std::array<int, 2> instructions{
+        0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
+        0x8006 | vx << 8 | vy << 4 // shr (shifts vy and stores the result in vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
@@ -453,12 +442,12 @@ TEST_CASE("shl (8xyE)", "[cpu]")
     // Too complicated for Catch to parse
     auto result = (kk << 1) & 0xff;
 
-    const std::array<std::uint16_t, 2> instructions{
-        b_or(0x6000, vy << 8, kk),     // ld_kk (loads kk into register vy)
-        b_or(0x800E, vx << 8, vy << 4) // shl (shifts vy and stores the result in vx)
+    const std::array<int, 2> instructions{
+        0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
+        0x800E | vx << 8 | vy << 4 // shl (shifts vy and stores the result in vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vy] == kk);
@@ -478,13 +467,13 @@ TEST_CASE("or_y (8xy1)", "[cpu]")
     auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
     auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk1),    // ld_kk (loads kk1 into register vx)
-        b_or(0x6000, vy << 8, kk2),    // ld_kk (loads kk2 into register vy)
-        b_or(0x8001, vx << 8, vy << 4) // or_y (vx = vx, vy)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk1,    // ld_kk (loads kk1 into register vx)
+        0x6000 | vy << 8 | kk2,    // ld_kk (loads kk2 into register vy)
+        0x8001 | vx << 8 | vy << 4 // or_y (vx = vx | vy
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -505,13 +494,13 @@ TEST_CASE("and_y (8xy2)", "[cpu]")
     auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
     auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk1),    // ld_kk (loads kk1 into register vx)
-        b_or(0x6000, vy << 8, kk2),    // ld_kk (loads kk2 into register vy)
-        b_or(0x8002, vx << 8, vy << 4) // and_y (vx = vx & vy)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk1,    // ld_kk (loads kk1 into register vx)
+        0x6000 | vy << 8 | kk2,    // ld_kk (loads kk2 into register vy)
+        0x8002 | vx << 8 | vy << 4 // and_y (vx = vx & vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -532,13 +521,13 @@ TEST_CASE("xor_y (8xy3)", "[cpu]")
     auto kk1 = GENERATE(take(10, random(0x00, 0xff)));
     auto kk2 = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk1),    // ld_kk (loads kk1 into register vx)
-        b_or(0x6000, vy << 8, kk2),    // ld_kk (loads kk2 into register vy)
-        b_or(0x8003, vx << 8, vy << 4) // xor_y (vx = vx ^ vy)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk1,    // ld_kk (loads kk1 into register vx)
+        0x6000 | vy << 8 | kk2,    // ld_kk (loads kk2 into register vy)
+        0x8003 | vx << 8 | vy << 4 // xor_y (vx = vx ^ vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -567,13 +556,13 @@ TEST_CASE("add_y (8xy4)", "[cpu]")
 
     auto sum = vx == vy ? 2 * kk2 : kk1 + kk2;
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk1),    // ld_kk (loads kk1 into register vx)
-        b_or(0x6000, vy << 8, kk2),    // ld_kk (loads kk2 into register vy)
-        b_or(0x8004, vx << 8, vy << 4) // add_y (vx = vx + vy)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk1,    // ld_kk (loads kk1 into register vx)
+        0x6000 | vy << 8 | kk2,    // ld_kk (loads kk2 into register vy)
+        0x8004 | vx << 8 | vy << 4 // add_y (vx = vx + vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -598,13 +587,13 @@ TEST_CASE("sub_y (8xy5)", "[cpu]")
 
     auto difference = vx == vy ? 0 : kk1 - kk2;
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk1),    // ld_kk (loads kk1 into register vx)
-        b_or(0x6000, vy << 8, kk2),    // ld_kk (loads kk2 into register vy)
-        b_or(0x8005, vx << 8, vy << 4) // sub_y (vx = vx - vy)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk1,    // ld_kk (loads kk1 into register vx)
+        0x6000 | vy << 8 | kk2,    // ld_kk (loads kk2 into register vy)
+        0x8005 | vx << 8 | vy << 4 // sub_y (vx = vx - vy)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -629,13 +618,13 @@ TEST_CASE("subn_y (8xy7)", "[cpu]")
 
     auto difference = vx == vy ? 0 : kk2 - kk1;
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk1),    // ld_kk (loads kk1 into register vx)
-        b_or(0x6000, vy << 8, kk2),    // ld_kk (loads kk2 into register vy)
-        b_or(0x8007, vx << 8, vy << 4) // subn_y (vx = vy - vx)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk1,    // ld_kk (loads kk1 into register vx)
+        0x6000 | vy << 8 | kk2,    // ld_kk (loads kk2 into register vy)
+        0x8007 | vx << 8 | vy << 4 // subn_y (vx = vy - vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk1);
@@ -657,13 +646,13 @@ TEST_CASE("add_i (Fx1E)", "[cpu]")
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
     auto nnn = GENERATE(take(10, random(0x000, 0xfff)));
 
-    const std::array<std::uint16_t, 3> instructions{
-        b_or(0x6000, vx << 8, kk), // ld_kk (loads kk into register vx)
-        b_or(0xA000, nnn),         // ld_addr (loads nnn into VI)
-        b_or(0xF01E, vx << 8)      // add_i (VI = VI + vx)
+    const std::array<int, 3> instructions{
+        0x6000 | vx << 8 | kk, // ld_kk (loads kk into register vx)
+        0xA000 | nnn,          // ld_addr (loads nnn into VI)
+        0xF01E | vx << 8       // add_i (VI = VI + vx)
     };
 
-    CPU cpu(make_rom(instructions.cbegin(), instructions.cend()));
+    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
     REQUIRE_NOTHROW(cpu.step());
     REQUIRE(cpu.read_registers()[vx] == kk);
@@ -679,11 +668,11 @@ TEST_CASE("rnd (Cxkk)", "[cpu]")
 {
     auto kk = GENERATE(take(100, random(0x01, 0xff)));
 
-    std::array<std::uint16_t, 16> instructions;
-    for (std::size_t i = 0; i < 16; ++i)
+    std::array<int, 16> instructions;
+    for (int i = 0; i < 16; ++i)
         instructions[i] = 0xC000 | (i << 8) | kk; // rnd (store (random byte & kk) to register i)
 
-    const std::vector<std::uint8_t> rom = make_rom(instructions.cbegin(), instructions.cend());
+    const std::vector<std::uint8_t> rom = make_rom(instructions.cbegin(), instructions.size());
 
     SECTION("Generates a random sequence")
     {
