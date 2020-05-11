@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <limits>
 
-[[nodiscard]] static constexpr std::uint64_t ror(std::uint64_t x, std::size_t s) noexcept
+[[nodiscard]] static constexpr std::uint64_t rotr(std::uint64_t x, std::size_t s) noexcept
 {
     constexpr auto digits = std::numeric_limits<std::uint64_t>::digits;
 
@@ -27,7 +27,7 @@ bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, s
     for (std::size_t i = 0; i < sprite.size() && y + i < Lines; ++i)
     {
         std::uint64_t& line = buffer[y + i];
-        const std::uint64_t mask = ror(sprite[i], x + 8 - Columns);
+        const std::uint64_t mask = rotr(sprite[i], x + 8 - Columns);
 
         if (!collision && ((line ^ mask) != (line | mask)))
             collision = true;
