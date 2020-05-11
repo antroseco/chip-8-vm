@@ -13,7 +13,7 @@
     return (x >> n) | (x << ((digits - n) % digits));
 }
 
-bool Frame::drawSprite(const std::vector<std::uint8_t>& sprite, std::size_t x, std::size_t y)
+bool Frame::drawSprite(byte_view sprite, std::size_t x, std::size_t y)
 {
     bool collision = false;
 

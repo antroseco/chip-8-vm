@@ -2,13 +2,13 @@
 
 #include "instruction.hpp"
 #include "timer.hpp"
+#include "utility.hpp"
 
 #include <array>
 #include <cstdint>
 #include <future>
 #include <random>
 #include <stack>
-#include <vector>
 
 class Frame;
 class Keyboard;
@@ -115,7 +115,7 @@ class CPU
 
 public:
     CPU() = delete;
-    CPU(const std::vector<std::uint8_t>& ROM, Frame* Display = nullptr, Keyboard* Input = nullptr);
+    CPU(byte_view ROM, Frame* Display = nullptr, Keyboard* Input = nullptr);
     bool step();
     void run(const std::future<void>& stop_token);
 

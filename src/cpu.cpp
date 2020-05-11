@@ -34,7 +34,7 @@ constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display, Keyboard* Input) : Display(Display), Input(Input)
+CPU::CPU(byte_view ROM, Frame* Display, Keyboard* Input) : Display(Display), Input(Input)
 {
     constexpr std::size_t max_size = 0x1000 - 0x200;
 
@@ -42,7 +42,7 @@ CPU::CPU(const std::vector<std::uint8_t>& ROM, Frame* Display, Keyboard* Input) 
     const auto start_address = std::next(Memory.begin(), 0x200);
 
     std::copy(Font.cbegin(), Font.cend(), Memory.begin());
-    std::copy_n(ROM.cbegin(), size, start_address);
+    std::copy_n(ROM.data(), size, start_address);
 
     IP.read(start_address);
 }
@@ -627,13 +627,11 @@ void CPU::drw()
     if (VI + IP.n() >= 4096)
         throw std::out_of_range("todo");
 
-    auto address = std::next(Memory.cbegin(), VI);
-
-    std::vector<std::uint8_t> Sprite;
-    std::copy_n(address, IP.n(), std::back_inserter(Sprite));
-
     if (Display)
+    {
+        const byte_view Sprite{Memory.cbegin() + VI, IP.n()};
         VF = Display->drawSprite(Sprite, V[IP.x()], V[IP.y()]);
+    }
 }
 
 void CPU::cls()

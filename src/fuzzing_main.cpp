@@ -1,13 +1,13 @@
 #include "cpu.hpp"
+#include "utility.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
-#include <vector>
 
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size)
 {
-    std::vector<std::uint8_t> ROM{data, data + size};
+    const byte_view ROM{data, size};
     CPU processor{ROM};
 
     try
