@@ -1,7 +1,5 @@
 #include "instruction.hpp"
 
-#include <algorithm>
-#include <array>
 #include <cassert>
 #include <netinet/in.h>
 #include <stdexcept>
@@ -16,16 +14,11 @@ void Instruction::read(const std::uint8_t* address)
 {
     assert(address != nullptr);
 
-    union {
-        std::uint16_t word;
-        std::array<std::uint8_t, sizeof(word)> bytes;
-    };
-
     /*
-    * Copy byte-by-byte to a buffer to avoid unaligned memory accesses,
+    * Read byte-by-byte to avoid unaligned memory accesses,
     * which are undefined behaviour (shorts are aligned to an even address)
     */
-    std::copy_n(address, bytes.size(), bytes.begin());
+    const std::uint16_t word =  address[1] << 8 | address[0];
     raw = htons(word);
 }
 
