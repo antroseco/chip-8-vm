@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 project(chip8_vm LANGUAGES CXX VERSION 1.0)
 
+option(CodeCoverage "Build with code coverage instrumentation" OFF)
+
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 # Require ISO C++17 support
@@ -54,6 +56,12 @@ target_compile_definitions(fuzz PRIVATE FUZZING)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(chip8_vm Threads::Threads)
+
+# Code coverage
+if (CodeCoverage)
+    target_compile_options(run_tests PRIVATE --coverage)
+    target_link_options(run_tests PRIVATE --coverage)
+endif()
 
 # Enable libFuzzer and UBSAN
 target_compile_options(fuzz PRIVATE -fsanitize=fuzzer,address,undefined)

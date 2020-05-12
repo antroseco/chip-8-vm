@@ -29,13 +29,19 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsfml-dev cmake
+        sudo apt-get install -y libsfml-dev cmake lcov
     - name: Build tests
       run: |
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCodeCoverage=ON
         cmake --build build --target run_tests
     - name: Run tests
       run: ./build/run_tests
+    - name: Collect coverage reports
+      run: |
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --list coverage.info
+        bash <(curl -s https://codecov.io/bash) -f coverage.info
 
   fuzz:
 
