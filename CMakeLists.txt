@@ -37,6 +37,7 @@ add_executable(run_tests test/test_main.cpp
                          test/test_cpu.cpp
                          test/test_instruction.cpp
                          test/test_timer.cpp
+                         test/test_utility.cpp
                          src/cpu.cpp
                          src/graphics.cpp
                          src/input.cpp
