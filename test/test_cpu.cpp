@@ -145,26 +145,45 @@ TEST_CASE("jp_v0 (Bnnn)", "[cpu]")
 
 TEST_CASE("call (2nnn)", "[cpu]")
 {
-    std::array<int, 17> instructions;
-    for (int i = 0; i < 16; ++i)
-        instructions[i] = 0x2200 | (i * 2 + 2); // call (push PC to stack and jump to 0x200 + i)
-
-    // Overflow the stack
-    instructions.back() = 0x2000;
-
-    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
-
-    REQUIRE(cpu.read_pc() == 0x200);
-
-    for (int i = 0; i < 16; ++i)
+    SECTION("Normal operation")
     {
-        REQUIRE_NOTHROW(cpu.step());
-        REQUIRE(cpu.read_pc() == (0x200 | (i * 2 + 2)));
-        REQUIRE(cpu.read_stack().top() == (0x200 | (i * 2)));
+        std::array<int, 17> instructions;
+        for (int i = 0; i < 16; ++i)
+            instructions[i] = 0x2200 | (i * 2 + 2); // call (push PC to stack and jump to 0x200 + i)
+
+        // Overflow the stack
+        instructions.back() = 0x2000;
+
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
+
+        REQUIRE(cpu.read_pc() == 0x200);
+
+        for (int i = 0; i < 16; ++i)
+        {
+            REQUIRE_NOTHROW(cpu.step());
+            REQUIRE(cpu.read_pc() == (0x200 | (i * 2 + 2)));
+            REQUIRE(cpu.read_stack().top() == (0x200 | (i * 2)));
+        }
+
+        SECTION("Stack can only contain 16 values")
+        {
+            REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
+        }
     }
 
-    SECTION("Stack can only contain 16 values", "[cpu]")
+    SECTION("Repeatedly calling the same address will overflow the stack")
     {
+        constexpr std::array<int, 1> instructions{
+            0x2200 // call 0x200
+        };
+
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
+
+        REQUIRE(cpu.read_pc() == 0x200);
+
+        for (int i = 0; i < 16; ++i)
+            REQUIRE_NOTHROW(cpu.step());
+
         REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
     }
 }
