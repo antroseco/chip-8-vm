@@ -57,12 +57,7 @@ class CPU
     Frame* const Display;
     Keyboard* const Input;
 
-#ifdef FUZZING
-    std::mt19937 Generator; // Deterministic (uses default seed)
-#else
-    std::random_device Generator; // Random number generator
-#endif
-    std::uniform_int_distribution<std::uint8_t> Distribution; // Random number distribution
+    std::mt19937 Generator;
 
     bool UpdatePC = true;
 

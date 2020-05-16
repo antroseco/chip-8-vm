@@ -44,6 +44,11 @@ CPU::CPU(byte_view ROM, Frame* Display, Keyboard* Input) : Display(Display), Inp
     std::copy_n(ROM.data(), size, start_address);
 
     IP.read(start_address);
+
+#ifndef FUZZING
+    std::random_device rd;
+    Generator.seed(rd());
+#endif
 }
 
 bool CPU::step()
@@ -598,7 +603,12 @@ void CPU::rnd()
     * 8xy2 for more information on AND.
     */
 
-    V[IP.x()] = Distribution(Generator) & IP.kk();
+    /*
+    * We are mapping the mt19937's [0, 2^32) output to [0, 2^8) so just masking
+    * out the higher order bytes should be safe, simple, and efficient (i.e. it
+    * preserves uniformity).
+    */
+    V[IP.x()] = Generator() & IP.kk();
 }
 
 void CPU::drw()
