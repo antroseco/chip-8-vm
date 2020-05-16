@@ -5,10 +5,10 @@
 #include "utility.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <future>
 #include <random>
-#include <stack>
 
 class Frame;
 class Keyboard;
@@ -43,12 +43,13 @@ http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
 class CPU
 {
     std::array<std::uint8_t, 0x1000> Memory = {0}; // 4096 bytes of RAM
-    std::stack<std::uint16_t> Stack;               // Stack, up to 16 16-bit addresses
+    std::array<std::uint_fast16_t, 12> Stack;      // Stack, up to 12 16-bit addresses
 
     std::array<std::uint8_t, 16> V = {0}; // 16 8-bit data registers (V0, V1, ..., VF)
     std::uint8_t& VF = V.back();          // Flag register (equivalent to V[0xF])
     std::uint16_t VI = 0;                 // 16-bit address register
     std::uint16_t PC = 0x200;             // Program Counter
+    std::size_t SP = 0;                   // Stack Pointer
     Instruction IP;                       // Instruction Pointer
 
     Timer DT; // Delay Timer
@@ -120,8 +121,9 @@ public:
     void run(const std::future<void>& stop_token);
 
     const std::array<std::uint8_t, 0x1000>& read_memory() const noexcept;
-    const std::stack<std::uint16_t>& read_stack() const noexcept;
+    const std::array<std::uint_fast16_t, 12>& read_stack() const noexcept;
     const std::array<std::uint8_t, 16>& read_registers() const noexcept;
     std::uint16_t read_vi() const noexcept;
     std::uint16_t read_pc() const noexcept;
+    std::size_t read_sp() const noexcept;
 };

@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-#include <stack>
 #include <vector>
 
 namespace
@@ -143,8 +142,8 @@ TEST_CASE("call (2nnn)", "[cpu]")
 {
     SECTION("Normal operation")
     {
-        std::array<int, 17> instructions;
-        for (int i = 0; i < 16; ++i)
+        std::array<int, 13> instructions;
+        for (int i = 0; i < 12; ++i)
             instructions[i] = 0x2200 | (i * 2 + 2); // call (push PC to stack and jump to 0x200 + i)
 
         // Overflow the stack
@@ -154,16 +153,16 @@ TEST_CASE("call (2nnn)", "[cpu]")
 
         REQUIRE(cpu.read_pc() == 0x200);
 
-        for (int i = 0; i < 16; ++i)
+        for (int i = 0; i < 12; ++i)
         {
             REQUIRE_NOTHROW(cpu.step());
             REQUIRE(cpu.read_pc() == (0x200 | (i * 2 + 2)));
-            REQUIRE(cpu.read_stack().top() == (0x200 | (i * 2)));
+            REQUIRE(cpu.read_stack().at(cpu.read_sp() - 1) == (0x200 | (i * 2)));
         }
 
-        SECTION("Stack can only contain 16 values")
+        SECTION("Stack can only contain 12 values")
         {
-            REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
+            REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
         }
     }
 
@@ -177,10 +176,10 @@ TEST_CASE("call (2nnn)", "[cpu]")
 
         REQUIRE(cpu.read_pc() == 0x200);
 
-        for (int i = 0; i < 16; ++i)
+        for (int i = 0; i < 12; ++i)
             REQUIRE_NOTHROW(cpu.step());
 
-        REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
+        REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
 }
 
@@ -198,12 +197,12 @@ TEST_CASE("ret (00EE)", "[cpu]")
         REQUIRE(cpu.read_pc() == 0x200);
         REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_pc() == 0x202);
-        REQUIRE(cpu.read_stack().top() == 0x200);
+        REQUIRE(cpu.read_stack().at(cpu.read_sp() - 1) == 0x200);
 
         REQUIRE_NOTHROW(cpu.step());
         // PC should be equal to the value on the stack + 2
         REQUIRE(cpu.read_pc() == 0x202);
-        REQUIRE(cpu.read_stack().empty());
+        REQUIRE(cpu.read_sp() == 0);
     }
 
     SECTION("Called with an empty stack")
@@ -214,8 +213,8 @@ TEST_CASE("ret (00EE)", "[cpu]")
 
         CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
-        REQUIRE(cpu.read_stack().empty());
-        REQUIRE_THROWS_AS(cpu.step(), std::runtime_error);
+        REQUIRE(cpu.read_sp() == 0);
+        REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
 }
 

@@ -132,7 +132,7 @@ const std::array<std::uint8_t, 0x1000>& CPU::read_memory() const noexcept
     return Memory;
 }
 
-const std::stack<std::uint16_t>& CPU::read_stack() const noexcept
+const std::array<std::uint_fast16_t, 12>& CPU::read_stack() const noexcept
 {
     return Stack;
 }
@@ -142,14 +142,19 @@ const std::array<std::uint8_t, 16>& CPU::read_registers() const noexcept
     return V;
 }
 
-uint16_t CPU::read_vi() const noexcept
+std::uint16_t CPU::read_vi() const noexcept
 {
     return VI;
 }
 
-uint16_t CPU::read_pc() const noexcept
+std::uint16_t CPU::read_pc() const noexcept
 {
     return PC;
+}
+
+std::size_t CPU::read_sp() const noexcept
+{
+    return SP;
 }
 
 bool CPU::Execute()
@@ -305,11 +310,9 @@ void CPU::call()
     * on the top of the stack. The PC is then set to nnn.
     */
 
-    // The stack should only contain 16 addresses
-    if (Stack.size() >= 16)
-        throw std::runtime_error("Stack overflow");
+    Stack.at(SP) = PC;
+    ++SP;
 
-    Stack.push(PC);
     jp();
 }
 
@@ -323,13 +326,9 @@ void CPU::ret()
     * of the stack, then subtracts 1 from the stack pointer.
     */
 
-    if (Stack.empty())
-        throw std::runtime_error("Stack underflow");
-
-    SetPC(Stack.top() + 2);
+    --SP;
+    SetPC(Stack.at(SP) + 2);
     UpdatePC = false;
-
-    Stack.pop();
 }
 
 void CPU::se_x_kk()

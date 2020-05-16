@@ -21,11 +21,11 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     }
     catch (std::runtime_error)
     {
-        // Stack over/underflow, invalid key
+        // Invalid key
     }
     catch (std::out_of_range)
     {
-        // Invalid memory address
+        // Invalid memory address, Stack over/underflow
     }
     catch (std::invalid_argument)
     {
