@@ -13,7 +13,7 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     try
     {
         for (int i = 0; processor.step() && i < 10000; ++i)
-            ;
+            continue;
     }
     catch (std::logic_error)
     {
