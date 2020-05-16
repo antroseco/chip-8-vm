@@ -22,6 +22,8 @@ struct Instruction
     * oxyn (2 operands, 1 constant)
     */
 
+    static constexpr int width = 2;
+
     std::uint16_t raw;
 
     constexpr Instruction() : raw(0){};

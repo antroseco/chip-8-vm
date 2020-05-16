@@ -56,7 +56,7 @@ bool CPU::step()
     const bool not_finished = Execute();
 
     if (UpdatePC)
-        AdvancePC(1);
+        SkipInstructions(1);
     else
         UpdatePC = true;
 
@@ -265,9 +265,9 @@ bool CPU::Execute()
     throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
 }
 
-void CPU::AdvancePC(const std::uint_fast16_t Instructions)
+void CPU::SkipInstructions(int Instructions)
 {
-    SetPC(PC + Instructions * 2);
+    SetPC(PC + Instructions * Instruction::width);
 }
 
 void CPU::SetPC(const std::uint16_t Address)
@@ -326,7 +326,7 @@ void CPU::ret()
     */
 
     --SP;
-    SetPC(Stack.at(SP) + 2);
+    SetPC(Stack.at(SP) + Instruction::width);
     UpdatePC = false;
 }
 
@@ -342,7 +342,7 @@ void CPU::se_x_kk()
 
     if (V[IP.x()] == IP.kk())
     {
-        AdvancePC(2);
+        SkipInstructions(2);
         UpdatePC = false;
     }
 }
@@ -359,7 +359,7 @@ void CPU::sne_x_kk()
 
     if (V[IP.x()] != IP.kk())
     {
-        AdvancePC(2);
+        SkipInstructions(2);
         UpdatePC = false;
     }
 }
@@ -376,7 +376,7 @@ void CPU::se_x_y()
 
     if (V[IP.x()] == V[IP.y()])
     {
-        AdvancePC(2);
+        SkipInstructions(2);
         UpdatePC = false;
     }
 }
@@ -555,7 +555,7 @@ void CPU::sne_x_y()
 
     if (V[IP.x()] != V[IP.y()])
     {
-        AdvancePC(2);
+        SkipInstructions(2);
         UpdatePC = false;
     }
 }
@@ -774,7 +774,7 @@ void CPU::skp_key() noexcept
 
     if (Input->query_key(key))
     {
-        AdvancePC(2);
+        SkipInstructions(2);
         UpdatePC = false;
     }
 }
@@ -796,7 +796,7 @@ void CPU::sknp_key() noexcept
 
     if (!Input->query_key(key))
     {
-        AdvancePC(2);
+        SkipInstructions(2);
         UpdatePC = false;
     }
 }

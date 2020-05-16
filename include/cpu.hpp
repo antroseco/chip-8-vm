@@ -62,8 +62,8 @@ class CPU
     bool UpdatePC = true;
 
     bool Execute();
-    void AdvancePC(const std::uint_fast16_t Instructions);
-    void SetPC(const std::uint16_t Address);
+    void SkipInstructions(int Instructions);
+    void SetPC(std::uint16_t Address);
 
     // Instruction set
     bool jp();
