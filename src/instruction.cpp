@@ -1,7 +1,6 @@
 #include "instruction.hpp"
 
 #include <cassert>
-#include <netinet/in.h>
 #include <stdexcept>
 #include <string>
 
@@ -17,9 +16,9 @@ void Instruction::read(const std::uint8_t* address)
     /*
     * Read byte-by-byte to avoid unaligned memory accesses,
     * which are undefined behaviour (shorts are aligned to an even address)
+    * Assume that address contains data in a big endian format
     */
-    const std::uint16_t word =  address[1] << 8 | address[0];
-    raw = htons(word);
+    raw = address[0] << 8 | address[1];
 }
 
 std::uint_fast16_t Instruction::opcode() const

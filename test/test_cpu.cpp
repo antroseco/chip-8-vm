@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-#include <netinet/in.h>
 #include <stack>
 #include <vector>
 
@@ -20,11 +19,8 @@ std::vector<std::uint8_t> make_rom(const int* begin, std::size_t size)
 
     for (auto data = begin; data != begin + size; ++data)
     {
-        const std::uint16_t instruction = htons(*data & 0xffff);
-        const std::uint8_t* const pointer = reinterpret_cast<const std::uint8_t*>(&instruction);
-
-        rom.emplace_back(pointer[0]);
-        rom.emplace_back(pointer[1]);
+        rom.push_back((*data >> 8) & 0xFF);
+        rom.push_back((*data >> 0) & 0xFF);
     }
 
     return rom;
