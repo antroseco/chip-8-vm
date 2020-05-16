@@ -1,12 +1,13 @@
 #include "catch.hpp"
 #include "cpu.hpp"
+#include "utility.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
 #include <vector>
+#include <stdexcept>
 
 namespace
 {
