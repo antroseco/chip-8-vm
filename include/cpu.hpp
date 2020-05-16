@@ -120,10 +120,9 @@ public:
     bool step();
     void run(const std::future<void>& stop_token);
 
-    const std::array<std::uint8_t, 0x1000>& read_memory() const noexcept;
-    const std::array<std::uint_fast16_t, 12>& read_stack() const noexcept;
-    const std::array<std::uint8_t, 16>& read_registers() const noexcept;
+    byte_view read_memory() const noexcept;
+    byte_view read_registers() const noexcept;
+    data_view<std::uint_fast16_t> read_stack() const noexcept;
     std::uint16_t read_vi() const noexcept;
     std::uint16_t read_pc() const noexcept;
-    std::size_t read_sp() const noexcept;
 };

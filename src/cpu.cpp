@@ -127,19 +127,19 @@ void CPU::run(const std::future<void>& stop_token)
     }
 }
 
-const std::array<std::uint8_t, 0x1000>& CPU::read_memory() const noexcept
+byte_view CPU::read_memory() const noexcept
 {
-    return Memory;
+    return {Memory.data(), Memory.size()};
 }
 
-const std::array<std::uint_fast16_t, 12>& CPU::read_stack() const noexcept
+data_view<std::uint_fast16_t> CPU::read_stack() const noexcept
 {
-    return Stack;
+    return {Stack.data(), SP};
 }
 
-const std::array<std::uint8_t, 16>& CPU::read_registers() const noexcept
+byte_view CPU::read_registers() const noexcept
 {
-    return V;
+    return {V.data(), V.size()};
 }
 
 std::uint16_t CPU::read_vi() const noexcept
@@ -150,11 +150,6 @@ std::uint16_t CPU::read_vi() const noexcept
 std::uint16_t CPU::read_pc() const noexcept
 {
     return PC;
-}
-
-std::size_t CPU::read_sp() const noexcept
-{
-    return SP;
 }
 
 bool CPU::Execute()

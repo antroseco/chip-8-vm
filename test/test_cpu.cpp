@@ -157,7 +157,7 @@ TEST_CASE("call (2nnn)", "[cpu]")
         {
             REQUIRE_NOTHROW(cpu.step());
             REQUIRE(cpu.read_pc() == (0x200 | (i * 2 + 2)));
-            REQUIRE(cpu.read_stack().at(cpu.read_sp() - 1) == (0x200 | (i * 2)));
+            REQUIRE(cpu.read_stack().back() == (0x200 | (i * 2)));
         }
 
         SECTION("Stack can only contain 12 values")
@@ -197,12 +197,12 @@ TEST_CASE("ret (00EE)", "[cpu]")
         REQUIRE(cpu.read_pc() == 0x200);
         REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_pc() == 0x202);
-        REQUIRE(cpu.read_stack().at(cpu.read_sp() - 1) == 0x200);
+        REQUIRE(cpu.read_stack().back() == 0x200);
 
         REQUIRE_NOTHROW(cpu.step());
         // PC should be equal to the value on the stack + 2
         REQUIRE(cpu.read_pc() == 0x202);
-        REQUIRE(cpu.read_sp() == 0);
+        REQUIRE(cpu.read_stack().empty());
     }
 
     SECTION("Called with an empty stack")
@@ -213,7 +213,7 @@ TEST_CASE("ret (00EE)", "[cpu]")
 
         CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
 
-        REQUIRE(cpu.read_sp() == 0);
+        REQUIRE(cpu.read_stack().empty());
         REQUIRE_THROWS_AS(cpu.step(), std::out_of_range);
     }
 }
