@@ -22,17 +22,15 @@ bool Frame::drawSprite(byte_view sprite, std::size_t x, std::size_t y)
     x %= Columns;
     y %= Lines;
 
-    std::scoped_lock lock{buffer_mutex};
-
     for (std::size_t i = 0; i < sprite.size() && y + i < Lines; ++i)
     {
-        std::uint64_t& line = buffer[y + i];
+        std::uint64_t line = buffer[y + i].load(std::memory_order_relaxed);
         const std::uint64_t mask = rotr(sprite[i], x + 8 - Columns);
 
         if (!collision && ((line ^ mask) != (line | mask)))
             collision = true;
 
-        line ^= mask;
+        buffer[y + i].store(line ^ mask, std::memory_order_relaxed);
     }
 
     updated.store(true, std::memory_order_release);
@@ -42,9 +40,9 @@ bool Frame::drawSprite(byte_view sprite, std::size_t x, std::size_t y)
 
 void Frame::clear()
 {
-    std::scoped_lock lock{buffer_mutex};
+    for (auto& line : buffer)
+        line.store(0, std::memory_order_relaxed);
 
-    buffer.fill(0);
     updated.store(true, std::memory_order_release);
 }
 
@@ -58,12 +56,10 @@ void Frame::render(sf::RenderTarget& target, bool force = false)
 
     target.clear(sf::Color::Black);
 
-    std::scoped_lock lock{buffer_mutex};
-
     for (std::size_t i = 0; i < Lines; ++i)
     {
         const float y = i;
-        std::uint64_t line = buffer[i];
+        std::uint64_t line = buffer[i].load(std::memory_order_relaxed);
 
         for (std::size_t j = 0; j < Columns; ++j)
         {

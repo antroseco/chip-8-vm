@@ -6,7 +6,6 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <mutex>
 
 namespace sf
 {
@@ -27,7 +26,6 @@ public:
     static void prepareTarget(sf::RenderTarget& target);
 
 private:
-    std::array<std::uint64_t, Lines> buffer{0};
+    std::array<std::atomic_uint64_t, Lines> buffer = {};
     std::atomic_bool updated = true;
-    std::mutex buffer_mutex;
 };
