@@ -66,6 +66,7 @@ bool CPU::step()
 void CPU::run(const std::future<void>& stop_token)
 {
     using namespace std::chrono;
+    using namespace std::chrono_literals;
 
     using clock_type = std::conditional<
         high_resolution_clock::is_steady,
@@ -73,10 +74,10 @@ void CPU::run(const std::future<void>& stop_token)
         steady_clock>::type;
 
     constexpr std::size_t target_frequency = 600;
-    auto instruction_cost = duration_cast<clock_type::duration>(seconds{1}) / target_frequency;
+    auto instruction_cost = duration_cast<clock_type::duration>(1s) / target_frequency;
 
     clock_type::time_point start = clock_type::now();
-    clock_type::duration budget{0};
+    clock_type::duration budget = 0s;
 
     // Circular buffer used to calculate average clock speed
     std::deque<clock_type::time_point> timepoints = {start};
@@ -90,7 +91,7 @@ void CPU::run(const std::future<void>& stop_token)
         * is executed. Any budget surplus is carried over to the next cycle.
         */
 
-        if (stop_token.wait_for(milliseconds{50}) == std::future_status::ready)
+        if (stop_token.wait_for(50ms) == std::future_status::ready)
             return;
 
         clock_type::time_point end = clock_type::now();
@@ -118,9 +119,9 @@ void CPU::run(const std::future<void>& stop_token)
 
         // Naive instruction cost adjustment
         if (average < target_frequency)
-            instruction_cost -= nanoseconds{500};
+            instruction_cost -= 500ns;
         else if (average > target_frequency)
-            instruction_cost += nanoseconds{500};
+            instruction_cost += 500ns;
 
         // TODO: Print average clock speed and current instruction cost
         if (Display)
