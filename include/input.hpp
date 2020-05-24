@@ -6,7 +6,7 @@
 
 class Keyboard
 {
-    std::array<std::atomic_bool, 16> keys = {0};
+    std::array<std::atomic_bool, 16> keys = {};
 
 public:
     Keyboard() = delete;

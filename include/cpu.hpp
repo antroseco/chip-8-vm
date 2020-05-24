@@ -42,15 +42,15 @@ http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
 
 class CPU
 {
-    std::array<std::uint8_t, 0x1000> Memory = {0}; // 4096 bytes of RAM
-    std::array<std::uint_fast16_t, 12> Stack;      // Stack, up to 12 16-bit addresses
+    std::array<std::uint8_t, 0x1000> Memory = {}; // 4096 bytes of RAM
+    std::array<std::uint_fast16_t, 12> Stack;     // Stack, up to 12 16-bit addresses
 
-    std::array<std::uint8_t, 16> V = {0}; // 16 8-bit data registers (V0, V1, ..., VF)
-    std::uint8_t& VF = V.back();          // Flag register (equivalent to V[0xF])
-    std::uint16_t VI = 0;                 // 16-bit address register
-    std::uint16_t PC = 0x200;             // Program Counter
-    std::size_t SP = 0;                   // Stack Pointer
-    Instruction IP;                       // Instruction Pointer
+    std::array<std::uint8_t, 16> V = {}; // 16 8-bit data registers (V0, V1, ..., VF)
+    std::uint8_t& VF = V.back();         // Flag register (equivalent to V[0xF])
+    std::uint16_t VI = 0;                // 16-bit address register
+    std::uint16_t PC = 0x200;            // Program Counter
+    std::size_t SP = 0;                  // Stack Pointer
+    Instruction IP;                      // Instruction Pointer
 
     Timer DT; // Delay Timer
 
