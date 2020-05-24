@@ -65,6 +65,5 @@
         "cassert": "cpp",
         "unordered_set": "cpp",
         "stack": "cpp"
-    },
-    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
+    }
 }
