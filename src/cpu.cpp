@@ -64,7 +64,7 @@ bool CPU::step()
     return not_finished;
 }
 
-void CPU::run(const std::future<void>& stop_token)
+void CPU::run_at(const std::future<void>& stop_token, std::size_t target_frequency)
 {
     using namespace std::chrono;
     using namespace std::chrono_literals;
@@ -74,7 +74,6 @@ void CPU::run(const std::future<void>& stop_token)
         high_resolution_clock,
         steady_clock>::type;
 
-    constexpr std::size_t target_frequency = 600;
     auto instruction_cost = duration_cast<clock_type::duration>(1s) / target_frequency;
 
     clock_type::time_point start = clock_type::now();
@@ -119,9 +118,9 @@ void CPU::run(const std::future<void>& stop_token)
         const std::size_t average = std::round(timepoints.size() / time_elapsed);
 
         // Naive instruction cost adjustment
-        if (average < target_frequency)
+        if (average < target_frequency && instruction_cost > clock_type::duration::min() + 500ns)
             instruction_cost -= 500ns;
-        else if (average > target_frequency)
+        else if (average > target_frequency && instruction_cost < clock_type::duration::max() - 500ns)
             instruction_cost += 500ns;
 
         // TODO: Print average clock speed and current instruction cost

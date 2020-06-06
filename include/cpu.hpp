@@ -117,7 +117,7 @@ public:
     CPU() = delete;
     CPU(byte_view ROM, bool ModernBehaviour = false, Frame* Display = nullptr, Keyboard* Input = nullptr);
     bool step();
-    void run(const std::future<void>& stop_token);
+    void run_at(const std::future<void>& stop_token, std::size_t target_frequency);
 
     byte_view read_memory() const noexcept;
     byte_view read_registers() const noexcept;

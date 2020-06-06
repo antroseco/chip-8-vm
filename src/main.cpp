@@ -25,6 +25,9 @@ int main(int argc, char* argv[])
     bool modern_behaviour = false;
     app.add_flag("-m,--modern", modern_behaviour, "Use modern shifting behaviour (8xy6 & 8xyE)");
 
+    std::size_t target_frequency = 600;
+    app.add_option("-f,--frequency", target_frequency, "Target frequency")->check(CLI::Range(1, 10000));
+
     CLI11_PARSE(app, argc, argv);
 
     try
@@ -51,7 +54,7 @@ int main(int argc, char* argv[])
         CPU cpu{ROM, modern_behaviour, &frame, &keyboard};
 
         std::promise<void> stop_token;
-        std::thread cpu_thread{&CPU::run, &cpu, stop_token.get_future()};
+        std::thread cpu_thread{&CPU::run_at, &cpu, stop_token.get_future(), target_frequency};
 
         sf::Clock clock;
         int frame_count = 0;
