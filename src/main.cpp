@@ -22,6 +22,9 @@ int main(int argc, char* argv[])
     std::string rom_path;
     app.add_option("rom", rom_path, "ROM to execute")->required()->check(CLI::ExistingFile);
 
+    bool modern_behaviour = false;
+    app.add_flag("-m,--modern", modern_behaviour, "Use modern shifting behaviour (8xy6 & 8xyE)");
+
     CLI11_PARSE(app, argc, argv);
 
     try
@@ -45,7 +48,7 @@ int main(int argc, char* argv[])
 
         Frame frame;
         Keyboard keyboard{window};
-        CPU cpu{ROM, &frame, &keyboard};
+        CPU cpu{ROM, modern_behaviour, &frame, &keyboard};
 
         std::promise<void> stop_token;
         std::thread cpu_thread{&CPU::run, &cpu, stop_token.get_future()};

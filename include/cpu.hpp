@@ -42,6 +42,8 @@ http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
 
 class CPU
 {
+    bool Modern;
+
     std::array<std::uint8_t, 0x1000> Memory = {}; // 4096 bytes of RAM
     std::uint16_t VI = 0;                         // 16-bit address register
 
@@ -113,7 +115,7 @@ class CPU
 
 public:
     CPU() = delete;
-    CPU(byte_view ROM, Frame* Display = nullptr, Keyboard* Input = nullptr);
+    CPU(byte_view ROM, bool ModernBehaviour = false, Frame* Display = nullptr, Keyboard* Input = nullptr);
     bool step();
     void run(const std::future<void>& stop_token);
 

@@ -33,7 +33,8 @@ constexpr std::array<std::uint8_t, 80> Font = {
     0xf0, 0x80, 0xf0, 0x80, 0x80  // F
 };
 
-CPU::CPU(byte_view ROM, Frame* Display, Keyboard* Input) : Display(Display), Input(Input)
+CPU::CPU(byte_view ROM, bool ModernBehaviour, Frame* Display, Keyboard* Input)
+    : Modern(ModernBehaviour), Display(Display), Input(Input)
 {
     constexpr std::size_t max_size = 0x1000 - 0x200;
 
@@ -502,8 +503,7 @@ void CPU::shr() noexcept
     */
 
     // Make a copy of the data in case it's stored in VF
-    // TODO: Implement modern behaviour and load from Vx
-    const std::uint8_t data = V[IP.y()];
+    const std::uint8_t data = Modern ? V[IP.x()] : V[IP.y()];
 
     VF = data & 0x01;
     V[IP.x()] = data >> 1;
@@ -520,8 +520,7 @@ void CPU::shl() noexcept
     */
 
     // Make a copy of the data in case it's stored in VF
-    // TODO: Implement modern behaviour and load from Vx
-    const std::uint8_t data = V[IP.y()];
+    const std::uint8_t data = Modern ? V[IP.x()] : V[IP.y()];
 
     VF = (data & 0x80) >> 7;
     V[IP.x()] = data << 1;

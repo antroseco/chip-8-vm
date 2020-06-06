@@ -6,8 +6,8 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 namespace
 {
@@ -430,22 +430,43 @@ TEST_CASE("shr (8xy6)", "[cpu]")
     auto vy = GENERATE(range_i(0x0, 0xf));
     auto kk = GENERATE(take(10, random(0x00, 0xff)));
 
-    const std::array<int, 2> instructions{
-        0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
-        0x8006 | vx << 8 | vy << 4 // shr (shifts vy and stores the result in vx)
-    };
+    SECTION("Original shift behaviour")
+    {
+        const std::array<int, 2> instructions{
+            0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
+            0x8006 | vx << 8 | vy << 4 // shr (shifts vy and stores the result in vx)
+        };
 
-    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size()), false};
 
-    REQUIRE_NOTHROW(cpu.step());
-    REQUIRE(cpu.read_registers()[vy] == kk);
-
-    REQUIRE_NOTHROW(cpu.step());
-    if (vy != vx && vy != 0xf)
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_registers()[vy] == kk);
-    REQUIRE(cpu.read_registers()[vx] == (kk >> 1));
-    if (vx != 0xf)
-        REQUIRE(cpu.read_registers()[0xf] == (kk & 1));
+
+        REQUIRE_NOTHROW(cpu.step());
+        if (vy != vx && vy != 0xf)
+            REQUIRE(cpu.read_registers()[vy] == kk);
+        REQUIRE(cpu.read_registers()[vx] == (kk >> 1));
+        if (vx != 0xf)
+            REQUIRE(cpu.read_registers()[0xf] == (kk & 1));
+    }
+
+    SECTION("Modern shift behaviour")
+    {
+        const std::array<int, 2> instructions{
+            0x6000 | vx << 8 | kk, // ld_kk (loads kk into register vx)
+            0x8006 | vx << 8       // shr (shifts vx in place)
+        };
+
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size()), true};
+
+        REQUIRE_NOTHROW(cpu.step());
+        REQUIRE(cpu.read_registers()[vx] == kk);
+
+        REQUIRE_NOTHROW(cpu.step());
+        if (vx != 0xf)
+            REQUIRE(cpu.read_registers()[0xf] == (kk & 1));
+        REQUIRE(cpu.read_registers()[vx] == (kk >> 1));
+    }
 }
 
 TEST_CASE("shl (8xyE)", "[cpu]")
@@ -457,22 +478,43 @@ TEST_CASE("shl (8xyE)", "[cpu]")
     // Too complicated for Catch to parse
     auto result = (kk << 1) & 0xff;
 
-    const std::array<int, 2> instructions{
-        0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
-        0x800E | vx << 8 | vy << 4 // shl (shifts vy and stores the result in vx)
-    };
+    SECTION("Original shift behaviour")
+    {
+        const std::array<int, 2> instructions{
+            0x6000 | vy << 8 | kk,     // ld_kk (loads kk into register vy)
+            0x800E | vx << 8 | vy << 4 // shl (shifts vy and stores the result in vx)
+        };
 
-    CPU cpu{make_rom(instructions.cbegin(), instructions.size())};
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size()), false};
 
-    REQUIRE_NOTHROW(cpu.step());
-    REQUIRE(cpu.read_registers()[vy] == kk);
-
-    REQUIRE_NOTHROW(cpu.step());
-    if (vy != vx && vy != 0xf)
+        REQUIRE_NOTHROW(cpu.step());
         REQUIRE(cpu.read_registers()[vy] == kk);
-    REQUIRE(cpu.read_registers()[vx] == result);
-    if (vx != 0xf)
-        REQUIRE(cpu.read_registers()[0xf] == (kk & 0x80) >> 7);
+
+        REQUIRE_NOTHROW(cpu.step());
+        if (vy != vx && vy != 0xf)
+            REQUIRE(cpu.read_registers()[vy] == kk);
+        REQUIRE(cpu.read_registers()[vx] == result);
+        if (vx != 0xf)
+            REQUIRE(cpu.read_registers()[0xf] == (kk & 0x80) >> 7);
+    }
+
+    SECTION("Modern shift behaviour")
+    {
+        const std::array<int, 2> instructions{
+            0x6000 | vx << 8 | kk,     // ld_kk (loads kk into register vy)
+            0x800E | vx << 8 | vy << 4 // shl (shifts vx in place)
+        };
+
+        CPU cpu{make_rom(instructions.cbegin(), instructions.size()), true};
+
+        REQUIRE_NOTHROW(cpu.step());
+        REQUIRE(cpu.read_registers()[vx] == kk);
+
+        REQUIRE_NOTHROW(cpu.step());
+        if (vx != 0xf)
+            REQUIRE(cpu.read_registers()[0xf] == (kk & 0x80) >> 7);
+        REQUIRE(cpu.read_registers()[vx] == result);
+    }
 }
 
 TEST_CASE("or_y (8xy1)", "[cpu]")
