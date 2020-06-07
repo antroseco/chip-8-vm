@@ -1,4 +1,5 @@
 #include "cpu.hpp"
+#include "graphics.hpp"
 #include "utility.hpp"
 
 #include <cstddef>
@@ -8,7 +9,8 @@
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size)
 {
     const byte_view ROM{data, size};
-    CPU processor{ROM};
+    Frame frame;
+    CPU processor{ROM, false, &frame};
 
     try
     {
@@ -26,10 +28,6 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     catch (std::out_of_range)
     {
         // Invalid memory address, Stack over/underflow
-    }
-    catch (std::invalid_argument)
-    {
-        // Invalid opcode
     }
 
     return 0; // Non-zero return values are reserved for future use.
