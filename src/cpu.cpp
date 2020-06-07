@@ -6,9 +6,11 @@
 #include <chrono>
 #include <cmath>
 #include <deque>
+#include <iomanip>
 #include <iterator>
 #include <optional>
 #include <ratio>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -66,6 +68,8 @@ bool CPU::step()
 
 void CPU::run_at(const std::future<void>& stop_token, std::size_t target_frequency)
 {
+    // TODO: Propagate exceptions between threads
+
     using namespace std::chrono;
     using namespace std::chrono_literals;
 
@@ -159,111 +163,135 @@ std::uint16_t CPU::read_pc() const noexcept
 
 bool CPU::Execute()
 {
-    switch (IP.opcode())
+    switch (IP.group())
     {
-    case 0x00E0:
-        cls();
-        return true;
-    case 0x00EE:
-        ret();
-        return true;
-    case 0x1000:
+    case 0x0:
+        switch (IP.raw)
+        {
+        case 0x00E0:
+            cls();
+            return true;
+        case 0x00EE:
+            ret();
+            return true;
+        }
+        break;
+    case 0x1:
         return jp();
-    case 0x2000:
+    case 0x2:
         call();
         return true;
-    case 0x3000:
+    case 0x3:
         se_x_kk();
         return true;
-    case 0x4000:
+    case 0x4:
         sne_x_kk();
         return true;
-    case 0x5000:
+    case 0x5:
         se_x_y();
         return true;
-    case 0x6000:
+    case 0x6:
         ld_kk();
         return true;
-    case 0x7000:
+    case 0x7:
         add_kk();
         return true;
-    case 0x8000:
-        ld_y();
-        return true;
-    case 0x8001:
-        or_y();
-        return true;
-    case 0x8002:
-        and_y();
-        return true;
-    case 0x8003:
-        xor_y();
-        return true;
-    case 0x8004:
-        add_y();
-        return true;
-    case 0x8005:
-        sub_y();
-        return true;
-    case 0x8006:
-        shr();
-        return true;
-    case 0x8007:
-        subn_y();
-        return true;
-    case 0x800e:
-        shl();
-        return true;
-    case 0x9000:
+    case 0x8:
+        switch (IP.n())
+        {
+        case 0x0:
+            ld_y();
+            return true;
+        case 0x1:
+            or_y();
+            return true;
+        case 0x2:
+            and_y();
+            return true;
+        case 0x3:
+            xor_y();
+            return true;
+        case 0x4:
+            add_y();
+            return true;
+        case 0x5:
+            sub_y();
+            return true;
+        case 0x6:
+            shr();
+            return true;
+        case 0x7:
+            subn_y();
+            return true;
+        case 0xE:
+            shl();
+            return true;
+        }
+        break;
+    case 0x9:
         sne_x_y();
         return true;
-    case 0xA000:
+    case 0xA:
         ld_addr();
         return true;
-    case 0xB000:
+    case 0xB:
         return jp_v0();
-    case 0xC000:
+    case 0xC:
         rnd();
         return true;
-    case 0xD000:
+    case 0xD:
         drw();
         return true;
-    case 0xE09E:
-        skp_key();
-        return true;
-    case 0xE0A1:
-        sknp_key();
-        return true;
-    case 0xF007:
-        ld_dt();
-        return true;
-    case 0xF00A:
-        ld_key();
-        return true;
-    case 0xF015:
-        set_dt();
-        return true;
-    case 0xF018:
-        // TODO: Implement sound
-        return true;
-    case 0xF01E:
-        add_i();
-        return true;
-    case 0xF029:
-        ld_digit();
-        return true;
-    case 0xF033:
-        str_bcd();
-        return true;
-    case 0xF055:
-        str_vx();
-        return true;
-    case 0xF065:
-        ld_vx();
-        return true;
+    case 0xE:
+        switch (IP.kk())
+        {
+        case 0x9E:
+            skp_key();
+            return true;
+        case 0xA1:
+            sknp_key();
+            return true;
+        }
+        break;
+    case 0xF:
+        switch (IP.kk())
+        {
+        case 0x07:
+            ld_dt();
+            return true;
+        case 0x0A:
+            ld_key();
+            return true;
+        case 0x15:
+            set_dt();
+            return true;
+        case 0x18:
+            // TODO: Implement sound
+            return true;
+        case 0x1E:
+            add_i();
+            return true;
+        case 0x29:
+            ld_digit();
+            return true;
+        case 0x33:
+            str_bcd();
+            return true;
+        case 0x55:
+            str_vx();
+            return true;
+        case 0x65:
+            ld_vx();
+            return true;
+        }
+        break;
     }
 
-    throw std::logic_error("Opcode " + std::to_string(IP.opcode()) + " not implemented");
+    std::stringstream error_message;
+    error_message << "Encountered illegal opcode 0x"
+                  << std::setfill('0') << std::hex << std::setw(Instruction::width * 2) << IP.raw
+                  << " at address 0x" << std::setw(3) << PC;
+    throw std::logic_error(error_message.str());
 }
 
 void CPU::SkipInstructions(int Instructions)

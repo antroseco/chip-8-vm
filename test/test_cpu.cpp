@@ -35,6 +35,23 @@ auto range_i(T start, T end)
 
 } // namespace
 
+TEST_CASE("Illegal opcodes", "[cpu]")
+{
+    constexpr std::array<int, 10> instructions{
+        0x0000, 0x8008, 0x8009, 0x800A, 0x800B,
+        0x800C, 0x800D, 0x800F, 0xE003, 0xF003};
+
+    const auto rom = make_rom(instructions.cbegin(), instructions.size());
+
+    for (std::size_t i = 0; i < rom.size(); i += Instruction::width)
+    {
+        byte_view bv{rom.data() + i, Instruction::width};
+        CPU cpu{bv};
+
+        REQUIRE_THROWS_AS(cpu.step(), std::logic_error);
+    }
+}
+
 TEST_CASE("jp (1nnn)", "[cpu]")
 {
     SECTION("Normal operation")
