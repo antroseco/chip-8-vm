@@ -6,8 +6,8 @@ option(CodeCoverage "Build with code coverage instrumentation" OFF)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-# Require ISO C++20 support
-set(CMAKE_CXX_STANDARD 20)
+# Require ISO C++17 support
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
