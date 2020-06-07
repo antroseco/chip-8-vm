@@ -6,8 +6,8 @@ option(CodeCoverage "Build with code coverage instrumentation" OFF)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-# Require ISO C++17 support
-set(CMAKE_CXX_STANDARD 17)
+# Require ISO C++20 support
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -29,7 +29,6 @@ add_executable(chip8_vm src/main.cpp
                         src/cpu.cpp
                         src/graphics.cpp
                         src/input.cpp
-                        src/instruction.cpp
                         src/rom.cpp
                         src/timer.cpp)
 
@@ -41,14 +40,12 @@ add_executable(run_tests test/test_main.cpp
                          src/cpu.cpp
                          src/graphics.cpp
                          src/input.cpp
-                         src/instruction.cpp
                          src/timer.cpp)
 
 add_executable(fuzz src/fuzzing_main.cpp
                     src/cpu.cpp
                     src/graphics.cpp
                     src/input.cpp
-                    src/instruction.cpp
                     src/timer.cpp)
 
 target_compile_definitions(fuzz PRIVATE FUZZING)

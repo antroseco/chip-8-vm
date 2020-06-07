@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 
 struct Instruction
@@ -24,18 +25,55 @@ struct Instruction
 
     static constexpr int width = 2;
 
-    std::uint_fast16_t raw;
+    std::uint_fast16_t raw = 0;
 
-    constexpr Instruction() : raw(0){};
-    constexpr explicit Instruction(std::uint16_t instruction) : raw(instruction){};
-    explicit Instruction(const std::uint8_t* address);
+    constexpr Instruction() noexcept = default;
 
-    void read(const std::uint8_t* address);
+    constexpr explicit Instruction(std::uint16_t instruction) noexcept : raw(instruction) {}
 
-    std::uint_fast8_t group() const noexcept;
-    std::uint_fast8_t x() const noexcept;
-    std::uint_fast8_t y() const noexcept;
-    std::uint_fast8_t n() const noexcept;
-    std::uint_fast8_t kk() const noexcept;
-    std::uint_fast16_t nnn() const noexcept;
+    constexpr explicit Instruction(const std::uint8_t* address) noexcept
+    {
+        read(address);
+    }
+
+    constexpr void read(const std::uint8_t* address) noexcept
+    {
+        assert(address != nullptr);
+
+        /*
+        * Read byte-by-byte to avoid unaligned memory accesses,
+        * which are undefined behaviour (shorts are aligned to an even address)
+        * Assume that address contains data in a big endian format
+        */
+        raw = address[0] << 8 | address[1];
+    }
+
+    [[nodiscard]] constexpr std::uint_fast8_t group() const noexcept
+    {
+        return raw >> 12;
+    }
+
+    [[nodiscard]] constexpr std::uint_fast8_t x() const noexcept
+    {
+        return (raw & 0x0F00) >> 8;
+    }
+
+    [[nodiscard]] constexpr std::uint_fast8_t y() const noexcept
+    {
+        return (raw & 0x00F0) >> 4;
+    }
+    [[nodiscard]] constexpr std::uint_fast8_t n() const noexcept
+    {
+        return (raw & 0x000F);
+    }
+
+    [[nodiscard]] constexpr std::uint_fast8_t kk() const noexcept
+    {
+        return (raw & 0x00FF);
+    }
+
+    [[nodiscard]] constexpr std::uint_fast16_t nnn() const noexcept
+    {
+        return (raw & 0x0FFF);
+    }
 };
