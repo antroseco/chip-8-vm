@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     app.add_flag("-m,--modern", modern_behaviour, "Use modern shifting behaviour (8xy6 & 8xyE)");
 
     std::size_t target_frequency = 600;
-    app.add_option("-f,--frequency", target_frequency, "Target frequency")->check(CLI::Range(1, 10000));
+    app.add_option("-f,--frequency", target_frequency, "Target frequency", true)->check(CLI::Range(1, 10000));
 
     CLI11_PARSE(app, argc, argv);
 
