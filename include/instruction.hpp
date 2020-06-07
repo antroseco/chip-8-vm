@@ -62,18 +62,19 @@ struct Instruction
     {
         return (raw & 0x00F0) >> 4;
     }
+
     [[nodiscard]] constexpr std::uint_fast8_t n() const noexcept
     {
-        return (raw & 0x000F);
+        return raw & 0x000F;
     }
 
     [[nodiscard]] constexpr std::uint_fast8_t kk() const noexcept
     {
-        return (raw & 0x00FF);
+        return raw & 0x00FF;
     }
 
     [[nodiscard]] constexpr std::uint_fast16_t nnn() const noexcept
     {
-        return (raw & 0x0FFF);
+        return raw & 0x0FFF;
     }
 };
