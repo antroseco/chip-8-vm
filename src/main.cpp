@@ -95,14 +95,15 @@ int main(int argc, char* argv[])
             frame.render(window, force_redraw);
             window.display();
 
-            if (frame_count < 100)
-            {
-                frame_count++;
-            }
-            else
+            if (++frame_count >= 120)
             {
                 sf::Time elapsed = clock.getElapsedTime();
-                std::cout << (float)elapsed.asMilliseconds() / frame_count << " ms (" << frame_count / elapsed.asSeconds() << " fps)\n";
+                int avg_fps = frame_count / elapsed.asSeconds();
+
+                // TODO: Use std::format when available
+                char title[64];
+                std::snprintf(title, 64, "CHIP-8 Virtual Machine (%d fps)", avg_fps);
+                window.setTitle(title);
 
                 frame_count = 0;
                 clock.restart();
