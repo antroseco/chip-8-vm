@@ -523,9 +523,10 @@ void CPU::shr() noexcept
 {
     /*
     * 8xy6 - SHR Vx, Vy
-    * Set Vx = Vy SHR 1.
+    * Original: Set Vx = Vy SHR 1.
+    * Modern:   Set Vx = Vx SHR 1.
     *
-    * Store the value of register VY shifted right one bit in register VX.
+    * Store the value of register VY or Vx shifted right one bit in register VX.
     * Set register VF to the least significant bit prior to the shift.
     */
 
@@ -540,9 +541,10 @@ void CPU::shl() noexcept
 {
     /*
     * 8xyE - SHL Vx, Vy
-    * Set Vx = Vy SHL 1.
+    * Original: Set Vx = Vy SHL 1.
+    * Modern:   Set Vx = Vx SHL 1.
     *
-    * Store the value of register VY shifted left one bit in register VX.
+    * Store the value of register VY or VX shifted left one bit in register VX.
     * Set register VF to the most significant bit prior to the shift.
     */
 
